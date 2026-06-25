@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>挑戰二：極速單位配對賽車 (Step 3 - 完全修復版)</title>
+    <title>挑戰二：極速單位配對賽車 (Step 3 - 核心遊戲環)</title>
     <!-- 引入親和力圓體字型 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -147,7 +147,7 @@
             border: 2px solid #C6D2F5;
         }
 
-        /* 結算畫面 (亦移至內部) */
+        /* 結算畫面 */
         #settlement-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -559,15 +559,11 @@
     <!-- 核心 16:9 遊戲畫布 -->
     <div id="game-viewport">
         
-        <!-- ==========================================
-             【修正：主選單與結算畫面移入內部，完美縮放】
-             ========================================== -->
         <!-- 1. 單機模式首頁選單 -->
         <div id="main-menu">
             <h1 class="menu-title">🏎️ 極速單位配對賽車 🏁</h1>
             <p class="menu-subtitle">訓練大腦建立物理數值與時間轉換的直覺反射！</p>
             
-            <!-- 【修正：水平一列式 5 張卡片並排】 -->
             <div class="level-grid">
                 <div class="level-card" style="border-color: #FFF0F0;" onclick="startGame(1)">
                     <div class="level-num" style="color: #D45D5D;">LV.1</div>
@@ -793,7 +789,7 @@
             }
         }
 
-        // 完美 RWD 縮放演算法：強制將 #game-viewport 等比例縮小在各種螢幕之內
+        // 完美 RWD 縮放演算法
         function performRWDViewportScale() {
             const viewport = document.getElementById('game-viewport');
             if (!viewport) return;
@@ -1050,7 +1046,149 @@
         }
 
         // ==========================================================================
-        // 10. 出題演算法 (對稱優化)
+        // 10. 【補回：高精準對稱出題核心演算法】 (修復空白卡片與崩潰核心)
+        // ==========================================================================
+        function getMetricPair(factor, minSmaller, maxSmaller, step) {
+            const range = (maxSmaller - minSmaller) / step;
+            const steps = Math.floor(Math.random() * (range + 1));
+            const smallerVal = minSmaller + steps * step;
+            const largerVal = roundToTwo(smallerVal / factor);
+            return { smallerVal, largerVal };
+        }
+
+        function generateQuestionData(level) {
+            let activeLevel = level;
+            if (level === 5) {
+                activeLevel = Math.floor(Math.random() * 4) + 1;
+            }
+
+            let leftVal, rightVal, leftUnit, rightUnit;
+            let isLeftToRight = Math.random() > 0.5;
+            let distractors = [];
+            let solutionStr = "";
+            let hintTitle = "";
+
+            switch(activeLevel) {
+                case 1: // LV.1: kg <-> g (1000倍)
+                    hintTitle = "💡 質量千進位提示";
+                    leftUnit = "kg"; rightUnit = "g";
+                    const pair1 = getMetricPair(1000, 50, 9500, 50);
+                    leftVal = pair1.largerVal;   
+                    rightVal = pair1.smallerVal; 
+
+                    if (isLeftToRight) {
+                        solutionStr = `1 kg = 1000 g<br>${leftVal} kg × 1000 = ${rightVal} g`;
+                    } else {
+                        solutionStr = `1000 g = 1 kg<br>${rightVal} g ÷ 1000 = ${leftVal} kg`;
+                    }
+                    
+                    distractors = getCleanShifts(isLeftToRight ? rightVal : leftVal);
+                    break;
+
+                case 2: // LV.2: L <-> mL (1000倍)
+                    hintTitle = "💡 容積千進位提示";
+                    leftUnit = "L"; rightUnit = "mL";
+                    const pair2 = getMetricPair(1000, 10, 2000, 10);
+                    leftVal = pair2.largerVal;   
+                    rightVal = pair2.smallerVal; 
+
+                    if (isLeftToRight) {
+                        solutionStr = `1 L = 1000 mL<br>${leftVal} L × 1000 = ${rightVal} mL`;
+                    } else {
+                        solutionStr = `1000 mL = 1 L<br>${rightVal} mL ÷ 1000 = ${leftVal} L`;
+                    }
+
+                    distractors = getCleanShifts(isLeftToRight ? rightVal : leftVal);
+                    break;
+
+                case 3: // LV.3: 長度連續跳階 (km/m/cm/mm)
+                    hintTitle = "💡 長度連續跳階提示";
+                    let subType = Math.floor(Math.random() * 3); // 0: km-m, 1: m-cm, 2: cm-mm
+                    
+                    if (subType === 0) {
+                        leftUnit = "km"; rightUnit = "m";
+                        const pair = getMetricPair(1000, 50, 9500, 50);
+                        leftVal = pair.largerVal; rightVal = pair.smallerVal;
+                        solutionStr = isLeftToRight ? `1 km = 1000 m<br>${leftVal} km × 1000 = ${rightVal} m` : `1000 m = 1 km<br>${rightVal} m ÷ 1000 = ${leftVal} km`;
+                    } else if (subType === 1) {
+                        leftUnit = "m"; rightUnit = "cm";
+                        const pair = getMetricPair(100, 5, 950, 1); 
+                        leftVal = pair.largerVal; rightVal = pair.smallerVal;
+                        solutionStr = isLeftToRight ? `1 m = 100 cm<br>${leftVal} m × 100 = ${rightVal} cm` : `100 cm = 1 m<br>${rightVal} cm ÷ 100 = ${leftVal} m`;
+                    } else {
+                        leftUnit = "cm"; rightUnit = "mm";
+                        const pair = getMetricPair(10, 5, 250, 1); 
+                        leftVal = pair.largerVal; rightVal = pair.smallerVal;
+                        solutionStr = isLeftToRight ? `1 cm = 10 mm<br>${leftVal} cm × 10 = ${rightVal} mm` : `10 mm = 1 cm<br>${rightVal} mm ÷ 10 = ${leftVal} cm`;
+                    }
+
+                    distractors = getCleanShifts(isLeftToRight ? rightVal : leftVal);
+                    break;
+
+                case 4: // LV.4: 時間六十進位陷阱 (hr <-> min)
+                    hintTitle = "💡 時間六十進位提示";
+                    leftUnit = "hr"; rightUnit = "min";
+                    
+                    const allowedDecimals = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.25, 0.75];
+                    const chosenDecimal = allowedDecimals[Math.floor(Math.random() * allowedDecimals.length)];
+                    const chosenInt = Math.floor(Math.random() * 3); 
+                    
+                    leftVal = roundToTwo(chosenInt + chosenDecimal);
+                    rightVal = Math.round(leftVal * 60); 
+
+                    if (isLeftToRight) {
+                        solutionStr = `1 小時 = 60 分鐘<br>${leftVal} hr × 60 = ${rightVal} min`;
+                        
+                        let baseDigitTrap = Math.round(leftVal * 100); 
+                        let directMinTrap = chosenInt * 60 + Math.round(chosenDecimal * 100); 
+                        
+                        distractors = [
+                            baseDigitTrap,
+                            directMinTrap,
+                            rightVal - 15,
+                            rightVal + 15,
+                            rightVal + 30,
+                            rightVal - 30
+                        ].map(String);
+                    } else {
+                        solutionStr = `60 分鐘 = 1 小時<br>${rightVal} min ÷ 60 = ${leftVal} hr`;
+                        
+                        let trapDecimalStr = chosenInt + "." + Math.round(rightVal % 60); 
+                        let directDivTrap = roundToTwo(rightVal / 100); 
+                        
+                        distractors = [
+                            parseFloat(trapDecimalStr),
+                            directDivTrap,
+                            leftVal + 0.5,
+                            leftVal - 0.5,
+                            leftVal + 1,
+                            0.5
+                        ].map(String);
+                    }
+                    break;
+            }
+
+            let questionText = "";
+            let answerText = "";
+            if (isLeftToRight) {
+                questionText = `${leftVal} ${leftUnit} = [ ? ] ${rightUnit}`;
+                answerText = `${rightVal}`;
+            } else {
+                questionText = `${rightVal} ${rightUnit} = [ ? ] ${leftUnit}`;
+                answerText = `${leftVal}`;
+            }
+
+            return {
+                questionText: questionText,
+                correctAnswer: answerText,
+                distractors: distractors,
+                solution: solutionStr,
+                hintTitle: hintTitle
+            };
+        }
+
+        // ==========================================================================
+        // 11. 介面互動與面板指令
         // ==========================================================================
         function generateNewQuestion(level) {
             currentQuestion = generateQuestionData(level);
@@ -1123,9 +1261,6 @@
             triggerFlipSimulation(false);
         }
 
-        // ==========================================================================
-        // 11. 介面互動與面板指令
-        // ==========================================================================
         function handleExitClick() {
             exitClickCount++;
             showToast(`連點測試：第 ${exitClickCount} 次`, 'info');
