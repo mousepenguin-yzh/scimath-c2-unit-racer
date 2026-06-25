@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>挑戰二：極速單位配對賽車 (Step 1)</title>
+    <!-- 引入親和力圓體字型 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ==========================================================================
+           1. 全域重置與基礎美學 (馬卡龍色系與深碳色背景)
+           ========================================================================== */
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #2C2A29; /* 深暖碳色背景，減低視覺疲勞 */
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            font-family: 'Zen Maru Gothic', 'Fredoka', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* ==========================================================================
+           2. RWD 16:9 絕對縮放核心視窗
+           ========================================================================== */
+        #game-viewport {
+            position: absolute;
+            width: 1280px;
+            height: 720px;
+            background-color: #FFFDF9; /* 溫潤奶油白 */
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+            border-radius: 24px;
+            transform-origin: center center;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 24px;
+        }
+
+        /* ==========================================================================
+           3. 頂部控制列 (返回按鈕、倒數條、Combo 顯示)
+           ========================================================================== */
+        .top-navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            height: 56px;
+            gap: 16px;
+        }
+
+        /* 返回按鈕：馬卡龍粉紅 */
+        #btn-exit {
+            background-color: #FFF0F0;
+            color: #D45D5D;
+            border: 3px solid #F5C6C6;
+            padding: 8px 18px;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            outline: none;
+        }
+
+        #btn-exit:active {
+            transform: scale(0.92);
+        }
+
+        /* 倒數計時條容器 */
+        .timer-container {
+            flex-grow: 1;
+            height: 24px;
+            background-color: #E6E6E6;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 3px solid #D0D0D0;
+            position: relative;
+        }
+
+        /* 倒數條主體：活力橘黃 */
+        #timer-bar {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #FFAE34, #FF7E36);
+            border-radius: 8px;
+            transition: width 0.1s linear;
+        }
+
+        /* Combo 顯示區域 */
+        #combo-badge {
+            background-color: #F0F4FF;
+            color: #5D79D4;
+            border: 3px solid #C6D2F5;
+            padding: 8px 16px;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 700;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        /* ==========================================================================
+           4. 中央字卡區 (跨平台防穿透與 3D/2D 混合翻牌架構)
+           ========================================================================== */
+        #card-container {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1200px; /* 提供翻牌時的透視感 */
+            margin: 20px 0;
+            position: relative;
+        }
+
+        /* 基礎字卡樣式 */
+        .game-card {
+            width: 580px;
+            height: 240px;
+            border-radius: 28px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden; /* 確保 Safari/Android WebView 相容性 */
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 正面：State A (出題狀態) */
+        #card-front {
+            background-color: #FFF9E6; /* 馬卡龍淡黃 */
+            border: 6px solid #F5E3A6;
+            z-index: 2;
+            transform: rotateY(0deg);
+        }
+
+        /* 背面：State B (救援解說狀態) - 預設在 3D 翻轉的背面 */
+        #card-back {
+            background-color: #F9FFF0; /* 馬卡龍粉綠 */
+            border: 6px solid #D9F5A6;
+            z-index: 1;
+            transform: rotateY(180deg);
+            padding: 20px;
+            justify-content: space-between;
+        }
+
+        /* 
+           【防穿透核心 CSS 狀態機制】
+           當容器處於 flipped 狀態時：
+           1. 正面直接 display: none 強制自 DOM 樹渲染流程隱藏（跨 iOS/Android 防穿透）。
+           2. 背面重歸 2D 平面 (rotateY: 0deg)，避免 3D 的 Z軸混亂導致觸控點擊失效。
+        */
+        #card-container.flipped #card-front {
+            display: none !important;
+            transform: rotateY(-180deg);
+        }
+
+        #card-container.flipped #card-back {
+            display: flex !important;
+            transform: rotateY(0deg);
+            z-index: 2;
+        }
+
+        /* 題目字體樣式 */
+        .formula-display {
+            font-size: 42px;
+            font-weight: 700;
+            color: #4A4644;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .formula-target {
+            color: #FF7E36;
+            border-bottom: 5px dashed #FF7E36;
+            padding-bottom: 2px;
+        }
+
+        /* 背面解說文字與折疊算式 */
+        .hint-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #557A3A;
+            margin-bottom: 8px;
+        }
+
+        .svg-placeholder {
+            width: 100%;
+            height: 60px;
+            border: 2px dashed #CBE8A4;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8CA870;
+            font-size: 16px;
+        }
+
+        /* 折疊遮罩 */
+        .solution-fold {
+            width: 100%;
+            background-color: #FFFFFF;
+            border: 2px solid #D9F5A6;
+            border-radius: 12px;
+            padding: 10px;
+            cursor: pointer;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .fold-header {
+            font-size: 16px;
+            font-weight: 700;
+            color: #6C944B;
+        }
+
+        #solution-content {
+            font-size: 18px;
+            font-weight: 700;
+            color: #FF5A5A;
+            margin-top: 8px;
+            border-top: 1px solid #EBEBEB;
+            padding-top: 8px;
+        }
+
+        /* 繼續嘗試按鈕 */
+        #btn-retry {
+            margin-top: 10px;
+            background-color: #E6FFFA;
+            color: #3A8E82;
+            border: 3px solid #A6F5E8;
+            padding: 6px 20px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        #btn-retry:active {
+            transform: scale(0.92);
+        }
+
+        /* ==========================================================================
+           5. 底部六宮格直覺選項板
+           ========================================================================== */
+        #options-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 16px;
+            width: 100%;
+            height: 240px;
+        }
+
+        /* 馬卡龍選項按鈕基礎樣式 (高度隔離行動端點擊回饋) */
+        .option-btn {
+            border-radius: 20px;
+            font-size: 32px;
+            font-weight: 700;
+            color: #4A4644;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.35), box-shadow 0.15s;
+            outline: none;
+            border: none;
+            /* 防止行動端長按彈出功能表 */
+            -webkit-touch-callout: none;
+        }
+
+        /* 當被按下時觸發果凍彈性效果 */
+        .option-btn.active, .option-btn:active {
+            transform: scale(0.92);
+            box-shadow: inset 0 6px 12px rgba(0,0,0,0.1);
+        }
+
+        /* ==========================================================================
+           6. 隱藏版開發調試遠端面板 (#test-remote-panel)
+           ========================================================================== */
+        #test-remote-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 280px;
+            background-color: rgba(255, 110, 36, 0.95);
+            border: 3px solid #FFFFFF;
+            border-radius: 16px;
+            padding: 16px;
+            color: white;
+            z-index: 9999;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            font-family: monospace;
+            display: none; /* 預設完全隱藏 */
+        }
+
+        .panel-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.4);
+            padding-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .panel-btn {
+            width: 100%;
+            background-color: white;
+            color: #FF6E24;
+            border: none;
+            padding: 6px;
+            margin-top: 6px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .panel-btn:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 核心 16:9 遊戲畫布 -->
+    <div id="game-viewport">
+        
+        <!-- 頂部控制列 -->
+        <div class="top-navbar">
+            <!-- 返回主頁按鈕 (兼作隱藏彩蛋點擊源之一) -->
+            <button id="btn-exit" onclick="handleExitClick()">↩ 返回主頁</button>
+            
+            <!-- 5 秒倒數進度條容器 -->
+            <div class="timer-container">
+                <div id="timer-bar"></div>
+            </div>
+            
+            <!-- Combo 徽章 -->
+            <div id="combo-badge">COMBO 0</div>
+        </div>
+
+        <!-- 中央字卡區 (混合 3D 旋轉與物理防穿透設計) -->
+        <div id="card-container">
+            <!-- 正面 (State A) -->
+            <div id="card-front" class="game-card">
+                <div class="formula-display">
+                    <span>1.25 hr</span>
+                    <span>=</span>
+                    <span class="formula-target">[ ? ] min</span>
+                </div>
+            </div>
+
+            <!-- 背面 (State B) -->
+            <div id="card-back" class="game-card" style="display: none;">
+                <div class="hint-title">💡 六十進位時間救援</div>
+                <!-- 預留 SVG 動態提示渲染區 -->
+                <div class="svg-placeholder">
+                    [此處在步驟四將渲染 SVG 時鐘比例圖]
+                </div>
+                <!-- 算式折疊遮罩 -->
+                <div class="solution-fold" onclick="toggleSolution(event)">
+                    <div class="fold-header">▼ 點擊展開解說算式</div>
+                    <div id="solution-content" style="display: none;">
+                        1 小時 = 60 分鐘<br>
+                        1.25 × 60 = 75 分鐘 (答案為 75)
+                    </div>
+                </div>
+                <button id="btn-retry" onclick="handleRetry(event)">再試一次</button>
+            </div>
+        </div>
+
+        <!-- 底部六宮格選項板 -->
+        <div id="options-board">
+            <!-- 每個按鈕配置馬卡龍柔和色彩與對應事件 -->
+            <button class="option-btn" style="background-color: #FFF0F0; border: 4px solid #F5C6C6;" onclick="handleOptionSelect(this)">75</button>
+            <button class="option-btn" style="background-color: #E6FFFA; border: 4px solid #A6F5E8;" onclick="handleOptionSelect(this)">125</button>
+            <button class="option-btn" style="background-color: #FFF9E6; border: 4px solid #F5E3A6;" onclick="handleOptionSelect(this)">85</button>
+            <button class="option-btn" style="background-color: #F0F4FF; border: 4px solid #C6D2F5;" onclick="handleOptionSelect(this)">65</button>
+            <button class="option-btn" style="background-color: #FFF0FA; border: 4px solid #F5C6ED;" onclick="handleOptionSelect(this)">15</button>
+            <button class="option-btn" style="background-color: #F0FFF4; border: 4px solid #C6F5CE;" onclick="handleOptionSelect(this)">90</button>
+        </div>
+
+    </div>
+
+    <!-- 隱藏版開發調試面板 -->
+    <div id="test-remote-panel">
+        <div class="panel-title">
+            <span>⚙️ 挑戰二 診斷面板</span>
+            <span style="cursor:pointer;" onclick="toggleDebugPanel()">❌</span>
+        </div>
+        <div style="font-size:11px; margin-bottom:8px; opacity:0.8;">狀態：步驟一 (Layout OK)</div>
+        <button class="panel-btn" onclick="triggerFlipSimulation()">模擬切換 State A / B</button>
+        <button class="panel-btn" onclick="simulateProgressDecrease()">模擬倒數條歸零</button>
+        <button class="panel-btn" onclick="resetProgress()">重置倒數條</button>
+    </div>
+
+    <!-- ==========================================================================
+         7. 控制邏輯與 RWD 自動變形系統 (完全解耦)
+         ========================================================================== -->
+    <script>
+        // 1. SafeStorage 安全沙盒封裝
+        const SafeStorage = {
+            getItem(key) {
+                try {
+                    return localStorage.getItem(key);
+                } catch (e) {
+                    console.warn("Storage 被 iframe 禁用或處於私密模式，已降級為記憶體儲存。");
+                    return this._memoryStorage ? this._memoryStorage[key] : null;
+                }
+            },
+            setItem(key, value) {
+                try {
+                    localStorage.setItem(key, value);
+                } catch (e) {
+                    if (!this._memoryStorage) this._memoryStorage = {};
+                    this._memoryStorage[key] = value;
+                }
+            }
+        };
+
+        // 2. RWD 視窗等比例縮放引擎
+        function performRWDViewportScale() {
+            const viewport = document.getElementById('game-viewport');
+            const designWidth = 1280;
+            const designHeight = 720;
+            
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            
+            // 計算最適合的縮放比
+            const scaleX = windowWidth / designWidth;
+            const scaleY = windowHeight / designHeight;
+            const currentScale = Math.min(scaleX, scaleY);
+            
+            // 使用 CSS Transform 進行物理級完美比例重組，無視一切瀏覽器原生跑版
+            viewport.style.transform = `translate(-50%, -50%) scale(${currentScale})`;
+        }
+
+        // 初始化 RWD 監聽事件
+        window.addEventListener('resize', performRWDViewportScale);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(performRWDViewportScale, 100);
+        });
+        document.addEventListener('DOMContentLoaded', performRWDViewportScale);
+
+
+        // 3. 點擊防抖與行動端高抗性按鈕反饋
+        const buttons = document.querySelectorAll('.option-btn, #btn-exit, #btn-retry');
+        buttons.forEach(btn => {
+            // 監聽 touch/pointer 事件以超越傳統 click 延遲
+            btn.addEventListener('pointerdown', () => {
+                btn.classList.add('active');
+            });
+            btn.addEventListener('pointerup', () => {
+                btn.classList.remove('active');
+            });
+            btn.addEventListener('pointerleave', () => {
+                btn.classList.remove('active');
+            });
+        });
+
+
+        // 4. 互動事件處理器 (純前端控制閉環，無空指針漏洞)
+        
+        // 返回主頁按鈕 (包含 5 次點擊解鎖開發診斷面板的彩蛋路由)
+        let exitClickCount = 0;
+        let exitClickTimer = null;
+
+        function handleExitClick() {
+            console.log("返回主頁按鈕被觸發");
+            
+            // 彩蛋路由計數
+            exitClickCount++;
+            clearTimeout(exitClickTimer);
+            exitClickTimer = setTimeout(() => {
+                exitClickCount = 0;
+            }, 3000); // 3 秒內連續點擊
+
+            if (exitClickCount >= 5) {
+                toggleDebugPanel();
+                exitClickCount = 0;
+            }
+
+            // 微前端與獨立運行判定
+            if (window !== top) {
+                // Iframe 模式：向父級傳遞 EXIT 指令
+                window.parent.postMessage({
+                    type: 'EXIT_CHALLENGE',
+                    challengeId: 2
+                }, '*');
+            } else {
+                // Standalone 模式：在控制台列印並可引導返回主網頁
+                alert("正在返回主選單 (Standalone)...");
+            }
+        }
+
+        // 選擇六宮格選項
+        function handleOptionSelect(buttonElement) {
+            const selectedValue = buttonElement.innerText;
+            console.log(`使用者點擊了選項: ${selectedValue}`);
+            
+            // 步驟一的暫時互動回饋：若點選正確答案 75 則模擬過關
+            if (selectedValue === '75') {
+                buttonElement.style.boxShadow = "0 0 15px #FFD700";
+                setTimeout(() => {
+                    alert("點擊正確！(步驟一連通性測試成功)");
+                    buttonElement.style.boxShadow = "";
+                }, 100);
+            } else {
+                // 模擬答錯進入 State B 背面提示
+                triggerFlipSimulation(true);
+            }
+        }
+
+        // 展開/收合計算過程
+        function toggleSolution(event) {
+            // 防止 iOS/Android 觸控穿透事件向外傳播
+            event.stopPropagation();
+            
+            const content = document.getElementById('solution-content');
+            const foldHeader = document.querySelector('.fold-header');
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                foldHeader.innerText = '▲ 點擊收合計算過程';
+            } else {
+                content.style.display = 'none';
+                foldHeader.innerText = '▼ 點擊展開解說算式';
+            }
+        }
+
+        // 再試一次 (從 State B 翻回 State A)
+        function handleRetry(event) {
+            if(event) event.stopPropagation();
+            console.log("點擊再試一次");
+            triggerFlipSimulation(false);
+            
+            // 重置折疊遮罩
+            document.getElementById('solution-content').style.display = 'none';
+            document.querySelector('.fold-header').innerText = '▼ 點擊展開解說算式';
+        }
+
+
+        // 5. 跨平台防穿透翻轉邏輯核心
+        function triggerFlipSimulation(forceFlipToBack) {
+            const container = document.getElementById('card-container');
+            const frontCard = document.getElementById('card-front');
+            const backCard = document.getElementById('card-back');
+
+            // 如果沒有傳入參數，則自動切換
+            const isFlipped = (forceFlipToBack !== undefined) ? !forceFlipToBack : container.classList.contains('flipped');
+
+            if (isFlipped) {
+                // 翻回正面 (State A)
+                container.classList.remove('flipped');
+                setTimeout(() => {
+                    frontCard.style.setProperty('display', 'flex', 'important');
+                    backCard.style.display = 'none';
+                }, 300); // 配合 CSS transition 0.6s 之一半，在旋轉垂直時切換顯示，保證視覺滑順
+            } else {
+                // 翻至背面 (State B)
+                container.classList.add('flipped');
+                setTimeout(() => {
+                    // 正面強制完全移出 DOM 樹（防 iOS/Android 觸控穿透之黃金鎖）
+                    frontCard.style.setProperty('display', 'none', 'important');
+                    backCard.style.setProperty('display', 'flex', 'important');
+                }, 300);
+            }
+        }
+
+
+        // 6. 診斷面板控制函數
+        function toggleDebugPanel() {
+            const panel = document.getElementById('test-remote-panel');
+            if (panel.style.display === 'none' || panel.style.display === '') {
+                panel.style.display = 'block';
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+
+        // 模擬倒數條扣除
+        let progressInterval = null;
+        function simulateProgressDecrease() {
+            clearInterval(progressInterval);
+            const bar = document.getElementById('timer-bar');
+            let width = 100;
+            progressInterval = setInterval(() => {
+                width -= 2;
+                if (width < 0) {
+                    width = 0;
+                    clearInterval(progressInterval);
+                    console.log("模擬時間到！");
+                    triggerFlipSimulation(true); // 時間到翻至背面
+                }
+                bar.style.width = width + '%';
+            }, 100);
+        }
+
+        // 重置倒數條
+        function resetProgress() {
+            clearInterval(progressInterval);
+            document.getElementById('timer-bar').style.width = '100%';
+        }
+
+        // 廣播初始化 Ready 指令
+        if (window !== top) {
+            window.parent.postMessage({
+                type: 'GAME_READY',
+                challengeId: 2
+            }, '*');
+        }
+    </script>
+</body>
+</html>
