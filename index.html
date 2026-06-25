@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>挑戰二：極速單位配對賽車 (Step 1)</title>
+    <title>挑戰二：極速單位配對賽車 (Step 2)</title>
     <!-- 引入親和力圓體字型 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,7 +23,7 @@
         }
 
         body {
-            background-color: #2C2A29; /* 深暖碳色背景，減低視覺疲勞 */
+            background-color: #2C2A29; /* 深暖碳色背景 */
             overflow: hidden;
             width: 100vw;
             height: 100vh;
@@ -55,7 +55,7 @@
         }
 
         /* ==========================================================================
-           3. 頂部控制列 (返回按鈕、倒數條、Combo 顯示)
+           3. 頂部控制列
            ========================================================================== */
         .top-navbar {
             display: flex;
@@ -66,7 +66,6 @@
             gap: 16px;
         }
 
-        /* 返回按鈕：馬卡龍粉紅 */
         #btn-exit {
             background-color: #FFF0F0;
             color: #D45D5D;
@@ -87,7 +86,6 @@
             transform: scale(0.92);
         }
 
-        /* 倒數計時條容器 */
         .timer-container {
             flex-grow: 1;
             height: 24px;
@@ -98,7 +96,6 @@
             position: relative;
         }
 
-        /* 倒數條主體：活力橘黃 */
         #timer-bar {
             width: 100%;
             height: 100%;
@@ -107,7 +104,6 @@
             transition: width 0.1s linear;
         }
 
-        /* Combo 顯示區域 */
         #combo-badge {
             background-color: #F0F4FF;
             color: #5D79D4;
@@ -121,19 +117,18 @@
         }
 
         /* ==========================================================================
-           4. 中央字卡區 (跨平台防穿透與 3D/2D 混合翻牌架構)
+           4. 中央字卡區 (跨平台防穿透翻牌架構)
            ========================================================================== */
         #card-container {
             flex-grow: 1;
             display: flex;
             justify-content: center;
             align-items: center;
-            perspective: 1200px; /* 提供翻牌時的透視感 */
+            perspective: 1200px;
             margin: 20px 0;
             position: relative;
         }
 
-        /* 基礎字卡樣式 */
         .game-card {
             width: 580px;
             height: 240px;
@@ -145,34 +140,27 @@
             align-items: center;
             position: absolute;
             backface-visibility: hidden;
-            -webkit-backface-visibility: hidden; /* 確保 Safari/Android WebView 相容性 */
+            -webkit-backface-visibility: hidden;
             transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* 正面：State A (出題狀態) */
         #card-front {
-            background-color: #FFF9E6; /* 馬卡龍淡黃 */
+            background-color: #FFF9E6;
             border: 6px solid #F5E3A6;
             z-index: 2;
             transform: rotateY(0deg);
         }
 
-        /* 背面：State B (救援解說狀態) - 預設在 3D 翻轉的背面 */
         #card-back {
-            background-color: #F9FFF0; /* 馬卡龍粉綠 */
+            background-color: #F9FFF0;
             border: 6px solid #D9F5A6;
             z-index: 1;
             transform: rotateY(180deg);
-            padding: 20px;
+            padding: 24px;
             justify-content: space-between;
         }
 
-        /* 
-           【防穿透核心 CSS 狀態機制】
-           當容器處於 flipped 狀態時：
-           1. 正面直接 display: none 強制自 DOM 樹渲染流程隱藏（跨 iOS/Android 防穿透）。
-           2. 背面重歸 2D 平面 (rotateY: 0deg)，避免 3D 的 Z軸混亂導致觸控點擊失效。
-        */
+        /* 跨平台防穿透翻牌 CSS 機制 */
         #card-container.flipped #card-front {
             display: none !important;
             transform: rotateY(-180deg);
@@ -184,14 +172,15 @@
             z-index: 2;
         }
 
-        /* 題目字體樣式 */
         .formula-display {
-            font-size: 42px;
+            font-size: 38px;
             font-weight: 700;
             color: #4A4644;
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
         .formula-target {
@@ -200,12 +189,11 @@
             padding-bottom: 2px;
         }
 
-        /* 背面解說文字與折疊算式 */
         .hint-title {
             font-size: 24px;
             font-weight: 700;
             color: #557A3A;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
 
         .svg-placeholder {
@@ -220,7 +208,6 @@
             font-size: 16px;
         }
 
-        /* 折疊遮罩 */
         .solution-fold {
             width: 100%;
             background-color: #FFFFFF;
@@ -229,7 +216,7 @@
             padding: 10px;
             cursor: pointer;
             text-align: center;
-            margin-top: 10px;
+            margin-top: 8px;
         }
 
         .fold-header {
@@ -245,11 +232,11 @@
             margin-top: 8px;
             border-top: 1px solid #EBEBEB;
             padding-top: 8px;
+            line-height: 1.4;
         }
 
-        /* 繼續嘗試按鈕 */
         #btn-retry {
-            margin-top: 10px;
+            margin-top: 8px;
             background-color: #E6FFFA;
             color: #3A8E82;
             border: 3px solid #A6F5E8;
@@ -265,7 +252,7 @@
         }
 
         /* ==========================================================================
-           5. 底部六宮格直覺選項板
+           5. 底部六宮格選項板
            ========================================================================== */
         #options-board {
             display: grid;
@@ -276,118 +263,146 @@
             height: 240px;
         }
 
-        /* 馬卡龍選項按鈕基礎樣式 (高度隔離行動端點擊回饋) */
         .option-btn {
             border-radius: 20px;
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
             color: #4A4644;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.35), box-shadow 0.15s;
+            transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.35), box-shadow 0.15s, background-color 0.2s;
             outline: none;
             border: none;
-            /* 防止行動端長按彈出功能表 */
             -webkit-touch-callout: none;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
         }
 
-        /* 當被按下時觸發果凍彈性效果 */
-        .option-btn.active, .option-btn:active {
-            transform: scale(0.92);
-            box-shadow: inset 0 6px 12px rgba(0,0,0,0.1);
+        .option-btn:active, .option-btn.active {
+            transform: scale(0.94);
+            box-shadow: 0 1px 0 rgba(0,0,0,0.1);
         }
 
         /* ==========================================================================
-           6. 隱藏版開發調試遠端面板 (#test-remote-panel)
+           6. 馬卡龍非阻塞懸浮 Toast 通知元件
+           ========================================================================== */
+        #toast-notification {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translate(-50%, -100%);
+            background-color: #FFF9E6;
+            color: #8A6D3B;
+            border: 3px solid #F5E3A6;
+            padding: 12px 28px;
+            border-radius: 20px;
+            font-size: 20px;
+            font-weight: 700;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            z-index: 10000;
+            opacity: 0;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+            pointer-events: none;
+            display: none;
+            text-align: center;
+        }
+
+        /* ==========================================================================
+           7. 隱藏版開發診斷調試面板
            ========================================================================== */
         #test-remote-panel {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            width: 280px;
-            background-color: rgba(255, 110, 36, 0.95);
-            border: 3px solid #FFFFFF;
+            width: 320px;
+            background-color: rgba(44, 42, 41, 0.96);
+            border: 3px solid #FF7E36;
             border-radius: 16px;
             padding: 16px;
             color: white;
             z-index: 9999;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             font-family: monospace;
-            display: none; /* 預設完全隱藏 */
+            display: none;
         }
 
         .panel-title {
             font-size: 14px;
             font-weight: bold;
             margin-bottom: 12px;
-            border-bottom: 1px solid rgba(255,255,255,0.4);
-            padding-bottom: 4px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 6px;
             display: flex;
             justify-content: space-between;
+            color: #FF7E36;
+        }
+
+        .panel-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
         }
 
         .panel-btn {
-            width: 100%;
-            background-color: white;
-            color: #FF6E24;
-            border: none;
-            padding: 6px;
-            margin-top: 6px;
+            background-color: #4A4644;
+            color: white;
+            border: 1px solid #666;
+            padding: 8px;
             border-radius: 8px;
             font-weight: bold;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 11px;
+            transition: background-color 0.1s;
         }
-        .panel-btn:active {
-            transform: scale(0.98);
+        .panel-btn:hover {
+            background-color: #666;
+        }
+        .panel-btn.active-level {
+            background-color: #FF7E36;
+            border-color: #FF7E36;
+            color: white;
         }
     </style>
 </head>
 <body>
+
+    <!-- 非阻塞懸浮 Toast 通知 -->
+    <div id="toast-notification">提示訊息佔位</div>
 
     <!-- 核心 16:9 遊戲畫布 -->
     <div id="game-viewport">
         
         <!-- 頂部控制列 -->
         <div class="top-navbar">
-            <!-- 返回主頁按鈕 (兼作隱藏彩蛋點擊源之一) -->
             <button id="btn-exit" onclick="handleExitClick()">↩ 返回主頁</button>
-            
-            <!-- 5 秒倒數進度條容器 -->
             <div class="timer-container">
                 <div id="timer-bar"></div>
             </div>
-            
-            <!-- Combo 徽章 -->
             <div id="combo-badge">COMBO 0</div>
         </div>
 
-        <!-- 中央字卡區 (混合 3D 旋轉與物理防穿透設計) -->
+        <!-- 中央字卡區 -->
         <div id="card-container">
             <!-- 正面 (State A) -->
             <div id="card-front" class="game-card">
-                <div class="formula-display">
-                    <span>1.25 hr</span>
-                    <span>=</span>
-                    <span class="formula-target">[ ? ] min</span>
+                <div class="formula-display" id="display-formula-container">
+                    <!-- 由 JavaScript 動態生成題目 -->
                 </div>
             </div>
 
             <!-- 背面 (State B) -->
             <div id="card-back" class="game-card" style="display: none;">
-                <div class="hint-title">💡 六十進位時間救援</div>
-                <!-- 預留 SVG 動態提示渲染區 -->
-                <div class="svg-placeholder">
-                    [此處在步驟四將渲染 SVG 時鐘比例圖]
+                <div class="hint-title" id="hint-title-text">💡 觀念救援提示</div>
+                <div class="svg-placeholder" id="hint-svg-placeholder">
+                    [此處在步驟四將渲染 SVG 圖形]
                 </div>
                 <!-- 算式折疊遮罩 -->
                 <div class="solution-fold" onclick="toggleSolution(event)">
                     <div class="fold-header">▼ 點擊展開解說算式</div>
                     <div id="solution-content" style="display: none;">
-                        1 小時 = 60 分鐘<br>
-                        1.25 × 60 = 75 分鐘 (答案為 75)
+                        <!-- 由 JavaScript 動態填入 -->
                     </div>
                 </div>
                 <button id="btn-retry" onclick="handleRetry(event)">再試一次</button>
@@ -396,13 +411,7 @@
 
         <!-- 底部六宮格選項板 -->
         <div id="options-board">
-            <!-- 每個按鈕配置馬卡龍柔和色彩與對應事件 -->
-            <button class="option-btn" style="background-color: #FFF0F0; border: 4px solid #F5C6C6;" onclick="handleOptionSelect(this)">75</button>
-            <button class="option-btn" style="background-color: #E6FFFA; border: 4px solid #A6F5E8;" onclick="handleOptionSelect(this)">125</button>
-            <button class="option-btn" style="background-color: #FFF9E6; border: 4px solid #F5E3A6;" onclick="handleOptionSelect(this)">85</button>
-            <button class="option-btn" style="background-color: #F0F4FF; border: 4px solid #C6D2F5;" onclick="handleOptionSelect(this)">65</button>
-            <button class="option-btn" style="background-color: #FFF0FA; border: 4px solid #F5C6ED;" onclick="handleOptionSelect(this)">15</button>
-            <button class="option-btn" style="background-color: #F0FFF4; border: 4px solid #C6F5CE;" onclick="handleOptionSelect(this)">90</button>
+            <!-- 按鈕將由 JavaScript 動態生成並上色，此處預留結構 -->
         </div>
 
     </div>
@@ -413,135 +422,437 @@
             <span>⚙️ 挑戰二 診斷面板</span>
             <span style="cursor:pointer;" onclick="toggleDebugPanel()">❌</span>
         </div>
-        <div style="font-size:11px; margin-bottom:8px; opacity:0.8;">狀態：步驟一 (Layout OK)</div>
-        <button class="panel-btn" onclick="triggerFlipSimulation()">模擬切換 State A / B</button>
-        <button class="panel-btn" onclick="simulateProgressDecrease()">模擬倒數條歸零</button>
-        <button class="panel-btn" onclick="resetProgress()">重置倒數條</button>
+        <div style="font-size:11px; margin-bottom:8px; color:#AAA;">步驟二：隨機出題與干擾矩陣已上線</div>
+        
+        <div style="font-size:12px; margin-bottom:6px; font-weight:bold;">📍 測試切換關卡題型：</div>
+        <div class="panel-grid">
+            <button class="panel-btn" id="lbl-v1" onclick="switchLevelAndGenerate(1)">LV.1 (kg/g)</button>
+            <button class="panel-btn" id="lbl-v2" onclick="switchLevelAndGenerate(2)">LV.2 (L/mL)</button>
+            <button class="panel-btn" id="lbl-v3" onclick="switchLevelAndGenerate(3)">LV.3 (長度大亂鬥)</button>
+            <button class="panel-btn" id="lbl-v4" onclick="switchLevelAndGenerate(4)">LV.4 (時間六十進位)</button>
+            <button class="panel-btn" id="lbl-v5" onclick="switchLevelAndGenerate(5)">LV.5 (極速混合)</button>
+        </div>
+        
+        <div style="font-size:12px; margin-bottom:6px; font-weight:bold;">📍 功能測試：</div>
+        <button class="panel-btn" style="width:100%; margin-bottom:6px;" onclick="triggerFlipSimulation()">強制翻轉卡片 (State A/B)</button>
+        <button class="panel-btn" style="width:100%;" onclick="printTelemetryMock()">模擬輸出數據 (Telemetry)</button>
     </div>
 
-    <!-- ==========================================================================
-         7. 控制邏輯與 RWD 自動變形系統 (完全解耦)
-         ========================================================================== -->
     <script>
-        // 1. SafeStorage 安全沙盒封裝
+        // ==========================================================================
+        // 1. 全域變數與儲存沙盒
+        // ==========================================================================
+        let currentLevel = 1;
+        let currentQuestion = null; // 存放當前題目物件
+        let exitClickCount = 0;
+        let exitClickTimer = null;
+        let toastTimer = null;
+
         const SafeStorage = {
             getItem(key) {
-                try {
-                    return localStorage.getItem(key);
-                } catch (e) {
-                    console.warn("Storage 被 iframe 禁用或處於私密模式，已降級為記憶體儲存。");
-                    return this._memoryStorage ? this._memoryStorage[key] : null;
-                }
+                try { return localStorage.getItem(key); } 
+                catch (e) { return this._mem ? this._mem[key] : null; }
             },
             setItem(key, value) {
-                try {
-                    localStorage.setItem(key, value);
-                } catch (e) {
-                    if (!this._memoryStorage) this._memoryStorage = {};
-                    this._memoryStorage[key] = value;
-                }
+                try { localStorage.setItem(key, value); } 
+                catch (e) { if (!this._mem) this._mem = {}; this._mem[key] = value; }
             }
         };
 
-        // 2. RWD 視窗等比例縮放引擎
-        function performRWDViewportScale() {
-            const viewport = document.getElementById('game-viewport');
-            const designWidth = 1280;
-            const designHeight = 720;
+        // ==========================================================================
+        // 2. 非阻塞式優雅 Toast 提示系統
+        // ==========================================================================
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast-notification');
+            toast.innerText = message;
+            toast.style.display = 'block';
             
-            const windowWidth = window.innerWidth;
-            const windowHeight = window.innerHeight;
+            // 根據類型調配馬卡龍配色
+            if (type === 'success') {
+                toast.style.backgroundColor = '#F0FFF4';
+                toast.style.color = '#38A169';
+                toast.style.borderColor = '#C6F5CE';
+            } else if (type === 'error') {
+                toast.style.backgroundColor = '#FFF0F0';
+                toast.style.color = '#E53E3E';
+                toast.style.borderColor = '#F5C6C6';
+            } else {
+                toast.style.backgroundColor = '#F0F4FF';
+                toast.style.color = '#3182CE';
+                toast.style.borderColor = '#C6D2F5';
+            }
+
+            // 觸發進場動畫
+            setTimeout(() => {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translate(-50%, 20px)';
+            }, 10);
             
-            // 計算最適合的縮放比
-            const scaleX = windowWidth / designWidth;
-            const scaleY = windowHeight / designHeight;
-            const currentScale = Math.min(scaleX, scaleY);
-            
-            // 使用 CSS Transform 進行物理級完美比例重組，無視一切瀏覽器原生跑版
-            viewport.style.transform = `translate(-50%, -50%) scale(${currentScale})`;
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translate(-50%, -100%)';
+                setTimeout(() => { toast.style.display = 'none'; }, 300);
+            }, 1800);
         }
 
-        // 初始化 RWD 監聽事件
+        // ==========================================================================
+        // 3. 核心 RWD 比例鎖定
+        // ==========================================================================
+        function performRWDViewportScale() {
+            const viewport = document.getElementById('game-viewport');
+            const scale = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+            viewport.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        }
         window.addEventListener('resize', performRWDViewportScale);
-        window.addEventListener('orientationchange', () => {
-            setTimeout(performRWDViewportScale, 100);
-        });
-        document.addEventListener('DOMContentLoaded', performRWDViewportScale);
-
-
-        // 3. 點擊防抖與行動端高抗性按鈕反饋
-        const buttons = document.querySelectorAll('.option-btn, #btn-exit, #btn-retry');
-        buttons.forEach(btn => {
-            // 監聽 touch/pointer 事件以超越傳統 click 延遲
-            btn.addEventListener('pointerdown', () => {
-                btn.classList.add('active');
-            });
-            btn.addEventListener('pointerup', () => {
-                btn.classList.remove('active');
-            });
-            btn.addEventListener('pointerleave', () => {
-                btn.classList.remove('active');
-            });
+        window.addEventListener('orientationchange', () => setTimeout(performRWDViewportScale, 100));
+        document.addEventListener('DOMContentLoaded', () => {
+            performRWDViewportScale();
+            // 預設生成 LV.1 題目
+            generateNewQuestion(1);
         });
 
-
-        // 4. 互動事件處理器 (純前端控制閉環，無空指針漏洞)
+        // ==========================================================================
+        // 4. 步驟二：隨機出題引擎與干擾矩陣演算法
+        // ==========================================================================
         
-        // 返回主頁按鈕 (包含 5 次點擊解鎖開發診斷面板的彩蛋路由)
-        let exitClickCount = 0;
-        let exitClickTimer = null;
+        // 輔助函式：陣列洗牌
+        function shuffleArray(arr) {
+            return arr.sort(() => Math.random() - 0.5);
+        }
 
-        function handleExitClick() {
-            console.log("返回主頁按鈕被觸發");
+        // 輔助函式：四捨五入到小數兩位
+        function roundToTwo(num) {
+            return Math.round((num + Number.EPSILON) * 100) / 100;
+        }
+
+        function generateQuestionData(level) {
+            // 若為 LV.5，則隨機抽取 1~4 的題型
+            let activeLevel = level;
+            if (level === 5) {
+                activeLevel = Math.floor(Math.random() * 4) + 1;
+            }
+
+            let type = "";       // 例如: "kg_to_g"
+            let leftVal = 0;     // 左側數值
+            let rightVal = 0;    // 右側數值
+            let leftUnit = "";
+            let rightUnit = "";
+            let isLeftToRight = Math.random() > 0.5; // 隨機決定左變右或右變左
             
-            // 彩蛋路由計數
+            let distractors = [];
+            let solutionStr = "";
+            let hintTitle = "";
+
+            switch(activeLevel) {
+                case 1: // LV.1: kg <-> g (1000倍)
+                    hintTitle = "💡 質量千進位提示";
+                    leftUnit = "kg";
+                    rightUnit = "g";
+                    // 隨機產生 0.05 ~ 9.95 的 2 位小數
+                    leftVal = roundToTwo(0.05 + Math.random() * 9.9);
+                    rightVal = Math.round(leftVal * 1000);
+
+                    if (isLeftToRight) {
+                        type = "kg_to_g";
+                        solutionStr = `1 kg = 1000 g<br>${leftVal} kg × 1000 = ${rightVal} g`;
+                        // 產生干擾項
+                        distractors = [
+                            leftVal * 10,        // 移位錯誤 (27.5)
+                            leftVal * 100,       // 移位錯誤 (275)
+                            leftVal * 10000,     // 移位錯誤 (27500)
+                            roundToTwo(leftVal / 1000), // 乘除顛倒 (0.00275)
+                            leftVal              // 無變動 (2.75)
+                        ];
+                    } else {
+                        type = "g_to_kg";
+                        solutionStr = `1000 g = 1 kg<br>${rightVal} g ÷ 1000 = ${leftVal} kg`;
+                        distractors = [
+                            rightVal * 1000,     // 乘除顛倒
+                            rightVal / 10,       // 移位錯誤
+                            rightVal / 100,      // 移位錯誤
+                            rightVal * 10,       // 移位錯誤
+                            rightVal             // 無變動
+                        ];
+                    }
+                    break;
+
+                case 2: // LV.2: L <-> mL (1000倍)
+                    hintTitle = "💡 容積千進位提示";
+                    leftUnit = "L";
+                    rightUnit = "mL";
+                    // 著重於極小數，如 0.01 ~ 0.99
+                    leftVal = roundToTwo(0.01 + Math.random() * 0.98);
+                    rightVal = Math.round(leftVal * 1000);
+
+                    if (isLeftToRight) {
+                        type = "L_to_mL";
+                        solutionStr = `1 L = 1000 mL<br>${leftVal} L × 1000 = ${rightVal} mL`;
+                        distractors = [
+                            leftVal * 100,       // 少零陷阱
+                            leftVal * 10000,     // 多零陷阱
+                            leftVal * 10,        // 移位錯誤
+                            roundToTwo(leftVal / 1000), // 乘除顛倒
+                            roundToTwo(leftVal * 10)
+                        ];
+                    } else {
+                        type = "mL_to_L";
+                        solutionStr = `1000 mL = 1 L<br>${rightVal} mL ÷ 1000 = ${leftVal} L`;
+                        distractors = [
+                            rightVal * 1000,
+                            roundToTwo(rightVal / 100),
+                            roundToTwo(rightVal / 10),
+                            roundToTwo(rightVal / 10000),
+                            rightVal
+                        ];
+                    }
+                    break;
+
+                case 3: // LV.3: 長度連續跳階 (km/m/cm/mm)
+                    hintTitle = "💡 長度連續跳階提示";
+                    let subType = Math.floor(Math.random() * 3); // 0: km-m(1000), 1: m-cm(100), 2: cm-mm(10)
+                    if (subType === 0) {
+                        leftUnit = "km"; rightUnit = "m";
+                        leftVal = roundToTwo(0.1 + Math.random() * 4.9);
+                        rightVal = Math.round(leftVal * 1000);
+                        if (isLeftToRight) {
+                            type = "km_to_m";
+                            solutionStr = `1 km = 1000 m<br>${leftVal} km × 1000 = ${rightVal} m`;
+                            distractors = [leftVal*100, leftVal*10000, leftVal*10, roundToTwo(leftVal/1000), leftVal];
+                        } else {
+                            type = "m_to_km";
+                            solutionStr = `1000 m = 1 km<br>${rightVal} m ÷ 1000 = ${leftVal} km`;
+                            distractors = [rightVal*1000, rightVal/100, rightVal/10, rightVal*10, rightVal];
+                        }
+                    } else if (subType === 1) {
+                        leftUnit = "m"; rightUnit = "cm";
+                        leftVal = roundToTwo(0.1 + Math.random() * 9.9);
+                        rightVal = Math.round(leftVal * 100);
+                        if (isLeftToRight) {
+                            type = "m_to_cm";
+                            solutionStr = `1 m = 100 cm<br>${leftVal} m × 100 = ${rightVal} cm`;
+                            distractors = [leftVal*10, leftVal*1000, roundToTwo(leftVal/100), leftVal, leftVal*10000];
+                        } else {
+                            type = "cm_to_m";
+                            solutionStr = `100 cm = 1 m<br>${rightVal} cm ÷ 100 = ${leftVal} m`;
+                            distractors = [rightVal*100, rightVal/10, rightVal*10, rightVal/1000, rightVal];
+                        }
+                    } else {
+                        leftUnit = "cm"; rightUnit = "mm";
+                        leftVal = roundToTwo(0.1 + Math.random() * 19.9);
+                        rightVal = Math.round(leftVal * 10);
+                        if (isLeftToRight) {
+                            type = "cm_to_mm";
+                            solutionStr = `1 cm = 10 mm<br>${leftVal} cm × 10 = ${rightVal} mm`;
+                            distractors = [leftVal*100, roundToTwo(leftVal/10), leftVal, leftVal*1000, roundToTwo(leftVal/100)];
+                        } else {
+                            type = "mm_to_cm";
+                            solutionStr = `10 mm = 1 cm<br>${rightVal} mm ÷ 10 = ${leftVal} cm`;
+                            distractors = [rightVal*10, rightVal/100, rightVal*100, rightVal/1000, rightVal];
+                        }
+                    }
+                    break;
+
+                case 4: // LV.4: 時間六十進位陷阱 (hr <-> min)
+                    hintTitle = "💡 時間六十進位提示";
+                    leftUnit = "hr";
+                    rightUnit = "min";
+                    
+                    // 為了除得盡，我們从小數點後兩位的特定組合中抽取 (0.05 乘 60 是 3分鐘，為最小整數步長)
+                    const validDecimals = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95];
+                    let chosenDecimal = validDecimals[Math.floor(Math.random() * validDecimals.length)];
+                    let chosenInt = Math.floor(Math.random() * 4) + 1; // 1~4 小時
+                    
+                    leftVal = roundToTwo(chosenInt + chosenDecimal);
+                    rightVal = Math.round(leftVal * 60);
+
+                    if (isLeftToRight) {
+                        type = "hr_to_min";
+                        solutionStr = `1 hr = 60 min<br>${leftVal} hr × 60 = ${rightVal} min`;
+                        
+                        // 建立高強度誘餌
+                        let baseDigitTrap = Math.round(leftVal * 100); // 1.25 hr -> 125 min (直覺數字硬套陷阱)
+                        let directMinTrap = chosenInt * 60 + Math.round(chosenDecimal * 100); // 1.25 hr -> 1小時25分=85分 (最經典認知錯誤)
+                        
+                        distractors = [
+                            baseDigitTrap,
+                            directMinTrap,
+                            rightVal - 10,
+                            rightVal + 15,
+                            Math.round(leftVal * 10)
+                        ];
+                    } else {
+                        type = "min_to_hr";
+                        solutionStr = `60 min = 1 hr<br>${rightVal} min ÷ 60 = ${leftVal} hr`;
+                        
+                        // 誘餌
+                        let trapDecimalStr = chosenInt + "." + Math.round(rightVal % 60); // 75 min -> 1小時15分 -> 1.15 hr (極強陷阱)
+                        let directDivTrap = roundToTwo(rightVal / 100); // 75 -> 0.75 hr
+                        
+                        distractors = [
+                            parseFloat(trapDecimalStr),
+                            directDivTrap,
+                            leftVal + 1,
+                            roundToTwo(rightVal / 10),
+                            rightVal
+                        ];
+                    }
+                    break;
+            }
+
+            // 格式化輸出
+            let questionText = "";
+            let answerText = "";
+            if (isLeftToRight) {
+                questionText = `${leftVal} ${leftUnit} = [ ? ] ${rightUnit}`;
+                answerText = `${rightVal}`;
+            } else {
+                questionText = `${rightVal} ${rightUnit} = [ ? ] ${leftUnit}`;
+                answerText = `${leftVal}`;
+            }
+
+            return {
+                questionText: questionText,
+                correctAnswer: answerText,
+                distractors: distractors.map(v => String(roundToTwo(v))),
+                solution: solutionStr,
+                hintTitle: hintTitle
+            };
+        }
+
+        // 生成新題目並渲染至畫面
+        function generateNewQuestion(level) {
+            currentQuestion = generateQuestionData(level);
+            console.log("全新題目產出：", currentQuestion);
+
+            // 1. 渲染字卡正面 (State A)
+            const displayContainer = document.getElementById('display-formula-container');
+            
+            // 解析題目文字做美化渲染
+            const parts = currentQuestion.questionText.split(" "); // ["1.25", "hr", "=", "[", "?", "]", "min"]
+            let htmlStr = "";
+            parts.forEach(p => {
+                if (p === '[ ? ]') {
+                    htmlStr += `<span class="formula-target">[ ? ]</span> `;
+                } else {
+                    htmlStr += `<span>${p}</span> `;
+                }
+            });
+            displayContainer.innerHTML = htmlStr;
+
+            // 2. 預備字卡背面 (State B)
+            document.getElementById('hint-title-text').innerText = currentQuestion.hintTitle;
+            document.getElementById('solution-content').innerHTML = currentQuestion.solution;
+
+            // 3. 渲染六宮格選項
+            const board = document.getElementById('options-board');
+            board.innerHTML = ""; // 清空
+
+            // 混合正確答案與干擾項，並去重
+            let allOptions = [currentQuestion.correctAnswer, ...currentQuestion.distractors];
+            allOptions = Array.from(new Set(allOptions)); // 去重
+
+            // 若去重後少於 6 個，則自動補足隨機數字
+            while (allOptions.length < 6) {
+                let randomPad = roundToTwo(parseFloat(currentQuestion.correctAnswer) * (0.5 + Math.random()));
+                if (!allOptions.includes(String(randomPad))) {
+                    allOptions.push(String(randomPad));
+                }
+            }
+
+            // 洗牌
+            allOptions = shuffleArray(allOptions).slice(0, 6);
+
+            // 2x3 色彩盤
+            const colors = [
+                { bg: '#FFF0F0', border: '#F5C6C6' },
+                { bg: '#E6FFFA', border: '#A6F5E8' },
+                { bg: '#FFF9E6', border: '#F5E3A6' },
+                { bg: '#F0F4FF', border: '#C6D2F5' },
+                { bg: '#FFF0FA', border: '#F5C6ED' },
+                { bg: '#F0FFF4', border: '#C6F5CE' }
+            ];
+
+            allOptions.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.style.backgroundColor = colors[idx].bg;
+                btn.style.border = `4px solid ${colors[idx].border}`;
+                
+                // 綁定事件
+                btn.onclick = () => handleOptionSelect(btn);
+
+                // 果凍觸控回饋
+                btn.addEventListener('pointerdown', () => btn.classList.add('active'));
+                btn.addEventListener('pointerup', () => btn.classList.remove('active'));
+                btn.addEventListener('pointerleave', () => btn.classList.remove('active'));
+
+                board.appendChild(btn);
+            });
+
+            // 確保翻回正面
+            triggerFlipSimulation(false);
+        }
+
+        // ==========================================================================
+        // 5. 互動流程管理
+        // ==========================================================================
+        
+        // 點擊返回按鈕
+        function handleExitClick() {
+            // 連續點擊彩蛋路由偵測 (非阻塞式)
             exitClickCount++;
+            showToast(`連點測試：第 ${exitClickCount} 次`, 'info');
+            
             clearTimeout(exitClickTimer);
             exitClickTimer = setTimeout(() => {
                 exitClickCount = 0;
-            }, 3000); // 3 秒內連續點擊
+            }, 3000);
 
             if (exitClickCount >= 5) {
                 toggleDebugPanel();
+                showToast("🔓 已解鎖開發診斷面板！", "success");
                 exitClickCount = 0;
             }
 
-            // 微前端與獨立運行判定
             if (window !== top) {
-                // Iframe 模式：向父級傳遞 EXIT 指令
-                window.parent.postMessage({
-                    type: 'EXIT_CHALLENGE',
-                    challengeId: 2
-                }, '*');
+                window.parent.postMessage({ type: 'EXIT_CHALLENGE', challengeId: 2 }, '*');
             } else {
-                // Standalone 模式：在控制台列印並可引導返回主網頁
-                alert("正在返回主選單 (Standalone)...");
+                // 單機模式下不跳 alert，改用 Toast
+                showToast("已觸發返回主選單 (非阻塞 Toast 反饋)", "info");
             }
         }
 
-        // 選擇六宮格選項
-        function handleOptionSelect(buttonElement) {
-            const selectedValue = buttonElement.innerText;
-            console.log(`使用者點擊了選項: ${selectedValue}`);
-            
-            // 步驟一的暫時互動回饋：若點選正確答案 75 則模擬過關
-            if (selectedValue === '75') {
-                buttonElement.style.boxShadow = "0 0 15px #FFD700";
+        // 點擊選項按鈕
+        function handleOptionSelect(button) {
+            const selectedVal = button.innerText;
+            if (selectedVal === currentQuestion.correctAnswer) {
+                // 答對：觸發成功 Toast
+                showToast("🎉 答對了！太厲害了！", "success");
+                // 0.4 秒後自動更新下一題
                 setTimeout(() => {
-                    alert("點擊正確！(步驟一連通性測試成功)");
-                    buttonElement.style.boxShadow = "";
-                }, 100);
+                    generateNewQuestion(currentLevel);
+                }, 400);
             } else {
-                // 模擬答錯進入 State B 背面提示
-                triggerFlipSimulation(true);
+                // 答錯：變紅並鎖定
+                button.style.backgroundColor = "#FFF0F0";
+                button.style.borderColor = "#FF8A8A";
+                button.style.color = "#FF3B30";
+                button.style.pointerEvents = "none";
+                
+                showToast("❌ 答案不對喔，進入觀念救援！", "error");
+                
+                // 0.3 秒後切換至 State B 背面提示
+                setTimeout(() => {
+                    triggerFlipSimulation(true);
+                }, 300);
             }
         }
 
         // 展開/收合計算過程
         function toggleSolution(event) {
-            // 防止 iOS/Android 觸控穿透事件向外傳播
             event.stopPropagation();
-            
             const content = document.getElementById('solution-content');
             const foldHeader = document.querySelector('.fold-header');
             if (content.style.display === 'none') {
@@ -553,25 +864,31 @@
             }
         }
 
-        // 再試一次 (從 State B 翻回 State A)
+        // 再試一次
         function handleRetry(event) {
-            if(event) event.stopPropagation();
-            console.log("點擊再試一次");
-            triggerFlipSimulation(false);
+            if (event) event.stopPropagation();
             
+            // 翻回正面
+            triggerFlipSimulation(false);
+
             // 重置折疊遮罩
             document.getElementById('solution-content').style.display = 'none';
             document.querySelector('.fold-header').innerText = '▼ 點擊展開解說算式';
+
+            // 解鎖所有被禁用的按鈕，讓學生再次作答
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach(btn => {
+                btn.style.pointerEvents = "auto";
+            });
+            showToast("請重新選擇答案！", "info");
         }
 
-
-        // 5. 跨平台防穿透翻轉邏輯核心
+        // 跨平台 3D 翻轉/防穿透核心控制
         function triggerFlipSimulation(forceFlipToBack) {
             const container = document.getElementById('card-container');
             const frontCard = document.getElementById('card-front');
             const backCard = document.getElementById('card-back');
 
-            // 如果沒有傳入參數，則自動切換
             const isFlipped = (forceFlipToBack !== undefined) ? !forceFlipToBack : container.classList.contains('flipped');
 
             if (isFlipped) {
@@ -580,59 +897,50 @@
                 setTimeout(() => {
                     frontCard.style.setProperty('display', 'flex', 'important');
                     backCard.style.display = 'none';
-                }, 300); // 配合 CSS transition 0.6s 之一半，在旋轉垂直時切換顯示，保證視覺滑順
+                }, 300);
             } else {
                 // 翻至背面 (State B)
                 container.classList.add('flipped');
                 setTimeout(() => {
-                    // 正面強制完全移出 DOM 樹（防 iOS/Android 觸控穿透之黃金鎖）
                     frontCard.style.setProperty('display', 'none', 'important');
                     backCard.style.setProperty('display', 'flex', 'important');
                 }, 300);
             }
         }
 
-
-        // 6. 診斷面板控制函數
+        // ==========================================================================
+        // 6. 開發面板診斷控制
+        // ==========================================================================
         function toggleDebugPanel() {
             const panel = document.getElementById('test-remote-panel');
-            if (panel.style.display === 'none' || panel.style.display === '') {
-                panel.style.display = 'block';
-            } else {
-                panel.style.display = 'none';
+            panel.style.display = (panel.style.display === 'none' || panel.style.display === '') ? 'block' : 'none';
+        }
+
+        function switchLevelAndGenerate(level) {
+            currentLevel = level;
+            
+            // 更新按鈕高亮狀態
+            for(let i=1; i<=5; i++) {
+                document.getElementById(`lbl-v${i}`).classList.remove('active-level');
             }
+            document.getElementById(`lbl-v${level}`).classList.add('active-level');
+
+            // 產生新題
+            generateNewQuestion(level);
+            showToast(`已切換至關卡 LV.${level}`, 'success');
         }
 
-        // 模擬倒數條扣除
-        let progressInterval = null;
-        function simulateProgressDecrease() {
-            clearInterval(progressInterval);
-            const bar = document.getElementById('timer-bar');
-            let width = 100;
-            progressInterval = setInterval(() => {
-                width -= 2;
-                if (width < 0) {
-                    width = 0;
-                    clearInterval(progressInterval);
-                    console.log("模擬時間到！");
-                    triggerFlipSimulation(true); // 時間到翻至背面
-                }
-                bar.style.width = width + '%';
-            }, 100);
-        }
-
-        // 重置倒數條
-        function resetProgress() {
-            clearInterval(progressInterval);
-            document.getElementById('timer-bar').style.width = '100%';
-        }
-
-        // 廣播初始化 Ready 指令
-        if (window !== top) {
-            window.parent.postMessage({
-                type: 'GAME_READY',
-                challengeId: 2
-            }, '*');
+        function printTelemetryMock() {
+            const telemetry = {
+                type: 'GAME_OVER',
+                challengeId: 2,
+                currentLevel: currentLevel,
+                isPerfect: true,
+                score: 100,
+                comboBonus: 10
+            };
+            console.log("Telemetry JSON 模擬封包：", JSON.stringify(telemetry, null, 4));
+            showToast("數據已成功輸出至瀏覽器 Console 控制台！", "success");
         }
     </script>
 </body>
