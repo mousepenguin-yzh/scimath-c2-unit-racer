@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>挑戰二：極速單位配對賽車 (Step 3 - 完全修復版)</title>
+    <title>挑戰二：極速單位配對賽車</title>
     <!-- 引入親和力圓體字型 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -73,7 +73,7 @@
             justify-content: center;
             align-items: center;
             padding: 40px;
-            border-radius: 18px;
+            border-radius: 24px;
         }
 
         .menu-title {
@@ -83,6 +83,7 @@
             margin-bottom: 8px;
             text-align: center;
             letter-spacing: 1.5px;
+            cursor: pointer;
         }
 
         .menu-subtitle {
@@ -107,22 +108,28 @@
         .level-card {
             flex: 1;
             background-color: white;
-            border-radius: 24px;
-            padding: 20px 12px;
+            border-radius: 20px;
+            padding: 24px 16px;
             text-align: center;
             cursor: pointer;
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
-            border: 4px solid transparent;
-            min-height: 175px;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s, border-color 0.2s;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.03);
+            border: 3px solid #E2E8F0;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
+            min-height: 220px;
         }
         .level-card:active {
-            transform: scale(0.93);
+            transform: scale(0.95);
         }
+
+        .level-card:nth-child(1):hover { border-color: #FEB2B2; }
+        .level-card:nth-child(2):hover { border-color: #90CDF4; }
+        .level-card:nth-child(3):hover { border-color: #D6BCFA; }
+        .level-card:nth-child(4):hover { border-color: #FBD38D; }
+        .level-card:nth-child(5):hover { border-color: #9AE6B4; }
 
         .level-num {
             font-size: 32px;
@@ -137,14 +144,14 @@
             line-height: 1.4;
         }
 
-        #highscore-display {
-            font-size: 18px;
+        .highscore-badge {
+            margin-top: 12px;
+            font-size: 13px;
             font-weight: 700;
-            color: #5D79D4;
-            background-color: #F0F4FF;
-            padding: 10px 24px;
-            border-radius: 16px;
-            border: 2px solid #C6D2F5;
+            color: #4A5568;
+            background-color: #EDF2F7;
+            padding: 4px 10px;
+            border-radius: 8px;
         }
 
         /* 結算畫面 */
@@ -159,7 +166,7 @@
             align-items: center;
             color: white;
             padding: 40px;
-            border-radius: 18px;
+            border-radius: 24px;
         }
 
         .settlement-title {
@@ -324,36 +331,65 @@
         }
 
         /* ==========================================================================
-           5. 中央字卡區
+           5. 賽車跑道動態 gamification
            ========================================================================== */
-        #card-container {
-            flex-grow: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            perspective: 1200px;
-            margin: 15px 0;
+        .racing-track-container {
+            width: 100%;
+            height: 44px;
+            background-color: #F0EFEA;
+            border-radius: 14px;
             position: relative;
-            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            border: 3px solid #E0DDD5;
+            margin: 8px 0;
+            overflow: hidden;
+        }
+        .track-line {
+            position: absolute;
+            top: 50%;
+            left: 20px;
+            right: 50px;
+            height: 4px;
+            background: repeating-linear-gradient(90deg, #999, #999 10px, transparent 10px, transparent 20px);
+            transform: translateY(-50%);
+        }
+        .racing-car {
+            position: absolute;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            font-size: 26px;
+            transition: left 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 10;
+        }
+        .track-finish {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 22px;
         }
 
-        #card-container.flipped {
-            transform: translateY(-35px);
+        /* ==========================================================================
+           6. 中央字卡區與 iOS 3D 穿透修復
+           ========================================================================== */
+        #card-container {
+            width: 100%;
+            height: 340px;
+            perspective: 1500px;
+            position: relative;
+            margin: 10px 0;
         }
 
         .game-card {
-            width: 620px; 
-            height: 260px; 
-            border-radius: 28px;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
             position: absolute;
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 800px;
+            height: 320px;
+            left: 50%;
+            margin-left: -400px; /* 水平居中 */
+            border-radius: 28px;
+            box-shadow: 0 16px 36px rgba(0,0,0,0.08);
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
         }
 
         #card-front {
@@ -361,35 +397,42 @@
             border: 6px solid #F5E3A6;
             z-index: 2;
             transform: rotateY(0deg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
         #card-back {
             background-color: #F9FFF0;
             border: 6px solid #D9F5A6;
-            z-index: 1;
             transform: rotateY(180deg);
-            padding: 16px 24px;
+            z-index: 1;
+            display: none; /* 預設在正面時完全不顯示 */
+            flex-direction: row;
             justify-content: space-between;
+            align-items: center;
+            padding: 16px 28px;
         }
 
+        /* iOS & Webkit Touch 穿透絕對防護：翻轉時，正面強制移除渲染，背面回到純 2D 坐標軸 */
         #card-container.flipped #card-front {
             display: none !important;
-            transform: rotateY(-180deg);
         }
 
         #card-container.flipped #card-back {
-            display: flex !important;
             transform: rotateY(0deg);
             z-index: 2;
+            display: flex;
         }
 
         .formula-display {
-            font-size: 44px;
+            font-size: 48px;
             font-weight: 700;
             color: #4A4644;
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 16px;
             flex-wrap: wrap;
             justify-content: center;
         }
@@ -400,13 +443,1362 @@
             padding-bottom: 2px;
         }
 
+        /* 觀念解救左右排版 */
+        .card-back-left {
+            width: 45%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #FFFFFF;
+            border-radius: 18px;
+            border: 2px solid #E2E8F0;
+            padding: 8px;
+        }
+
+        .card-back-right {
+            width: 52%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: stretch;
+            padding-left: 10px;
+        }
+
         .hint-title {
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 700;
             color: #557A3A;
             margin-bottom: 4px;
             text-align: center;
         }
 
-        .svg-placeholder {
-     
+        #hint-svg-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 折疊算式遮罩設計 */
+        .formula-block-wrapper {
+            position: relative;
+            margin: 6px 0;
+        }
+
+        .formula-mask {
+            background-color: #EDF2F7;
+            border: 3px dashed #CBD5E0;
+            color: #4A5568;
+            padding: 14px;
+            border-radius: 16px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+        .formula-mask:hover {
+            background-color: #E2E8F0;
+        }
+
+        .formula-content {
+            background-color: #FFFFFF;
+            border: 3px solid #D9F5A6;
+            color: #2D3748;
+            padding: 12px;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 700;
+            text-align: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .btn-next {
+            background-color: #38A169;
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 12px 24px;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(56, 161, 105, 0.3);
+            transition: transform 0.1s, background-color 0.2s;
+            text-align: center;
+            outline: none;
+        }
+        .btn-next:hover {
+            background-color: #2F855A;
+        }
+        .btn-next:active {
+            transform: scale(0.95);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ==========================================================================
+           7. 答題選項按鈕區
+           ========================================================================== */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            width: 800px;
+            margin: 0 auto;
+            transition: opacity 0.3s;
+        }
+
+        .option-btn {
+            background-color: white;
+            border: 4px solid #E2E8F0;
+            border-radius: 20px;
+            padding: 14px 24px;
+            font-size: 24px;
+            font-weight: 700;
+            color: #4A4644;
+            cursor: pointer;
+            transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 16px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+            outline: none;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: #5D79D4;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(93, 121, 212, 0.15);
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: scale(0.96);
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+        }
+
+        .option-btn.disabled {
+            opacity: 0.35;
+            border-color: #CBD5E0;
+            background-color: #EDF2F7;
+            text-decoration: line-through;
+        }
+
+        .option-label {
+            width: 36px;
+            height: 36px;
+            background-color: #EDF2F7;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #718096;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .option-btn:hover:not(:disabled) .option-label {
+            background-color: #5D79D4;
+            color: white;
+        }
+
+        /* State B 時選項淡化禁點 */
+        #game-viewport.state-b .options-grid {
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        /* ==========================================================================
+           8. 自訂高抗性 Toast 提示容器
+           ========================================================================== */
+        .toast-container {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background-color: #2D3748;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast-success { background-color: #48BB78; border: 2px solid #C6F6D5; color: white; }
+        .toast-error { background-color: #E53E3E; border: 2px solid #FED7D7; color: white; }
+        .toast-info { background-color: #4299E1; border: 2px solid #BEE3F8; color: white; }
+
+        /* ==========================================================================
+           9. 隱藏版開發者控制面板
+           ========================================================================== */
+        #dev-panel {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(44, 42, 41, 0.95);
+            border: 3px solid #ED8936;
+            border-radius: 16px;
+            padding: 16px;
+            color: white;
+            z-index: 4000;
+            display: none;
+            width: 250px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .dev-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #ED8936;
+            margin-bottom: 12px;
+            text-align: center;
+            border-bottom: 1px solid #4A5568;
+            padding-bottom: 6px;
+        }
+
+        .dev-btn {
+            width: 100%;
+            padding: 8px;
+            background-color: #4A5568;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-bottom: 8px;
+            transition: background 0.2s;
+        }
+
+        .dev-btn:hover { background-color: #718096; }
+        .dev-btn-close { background-color: #E53E3E; }
+        .dev-btn-close:hover { background-color: #FC8181; }
+    </style>
+</head>
+<body>
+
+    <!-- 16:9 絕對縮放視窗容器 -->
+    <div id="game-viewport">
+        
+        <!-- A. 頂部導覽列 -->
+        <div class="top-navbar">
+            <button id="btn-exit" onclick="handleExit()">
+                <span>↩</span> 返回
+            </button>
+            <div id="question-progress">1 / 10</div>
+            
+            <div class="timer-container">
+                <div id="timer-bar"></div>
+            </div>
+            
+            <div id="score-badge">得分: 0</div>
+            <div id="combo-badge">連擊: 0</div>
+        </div>
+
+        <!-- B. 動態賽車跑道 -->
+        <div class="racing-track-container">
+            <div class="track-line"></div>
+            <div id="racing-car" class="racing-car">🏎️</div>
+            <div class="track-finish">🏁</div>
+        </div>
+
+        <!-- C. 字卡旋轉視窗區 -->
+        <div id="card-container">
+            <!-- 狀態 A：正面（題目頁） -->
+            <div class="game-card" id="card-front">
+                <div class="formula-display">
+                    <span id="q-val-from">0</span> 
+                    <span id="q-unit-from">--</span> 
+                    <span>=</span> 
+                    <span class="formula-target">[ ? ]</span> 
+                    <span id="q-unit-to">--</span>
+                </div>
+            </div>
+            
+            <!-- 狀態 B：背面（觀念救援頁） -->
+            <div class="game-card" id="card-back">
+                <div class="card-back-left">
+                    <div id="hint-svg-placeholder"></div>
+                </div>
+                <div class="card-back-right">
+                    <div>
+                        <div id="hint-concept-title" class="hint-title">單位配對觀念 💡</div>
+                        <p style="font-size: 15px; color: #4A5568; margin-top: 4px; line-height: 1.4; text-align: center;">
+                            大單位換算至小單位時數值相乘；小變大時數值相除。
+                        </p>
+                    </div>
+                    
+                    <div class="formula-block-wrapper">
+                        <div id="formula-mask" class="formula-mask" onclick="unlockFormula()">
+                            點擊解鎖解題公式 💡
+                        </div>
+                        <div id="formula-content" class="formula-content" style="display: none;">
+                            <!-- 動態填充公式內容 -->
+                        </div>
+                    </div>
+                    
+                    <button id="btn-next-question" class="btn-next" onclick="goToNextQuestion()">
+                        繼續前進 🏎️
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- D. 答題選項按鈕區 -->
+        <div id="options-grid" class="options-grid">
+            <button class="option-btn" onclick="selectOption(0)">
+                <span class="option-label">A</span>
+                <span class="option-text" id="opt-0">--</span>
+            </button>
+            <button class="option-btn" onclick="selectOption(1)">
+                <span class="option-label">B</span>
+                <span class="option-text" id="opt-1">--</span>
+            </button>
+            <button class="option-btn" onclick="selectOption(2)">
+                <span class="option-label">C</span>
+                <span class="option-text" id="opt-2">--</span>
+            </button>
+            <button class="option-btn" onclick="selectOption(3)">
+                <span class="option-label">D</span>
+                <span class="option-text" id="opt-3">--</span>
+            </button>
+        </div>
+
+        <!-- ==========================================================================
+             微前端合約與內建畫面群 (全包裹在 Viewport 內，繼承 CSS 縮放)
+             ========================================================================== -->
+        
+        <!-- 主選單畫面 -->
+        <div id="main-menu">
+            <div class="menu-title" onclick="handleDevClicks()">極速單位配對賽車 🏎️</div>
+            <div class="menu-subtitle">挑戰物理單位換算，消滅認知延遲！</div>
+            
+            <div class="level-grid">
+                <!-- LV.1 -->
+                <div class="level-card" onclick="startGame(1)">
+                    <div class="level-num" style="color: #FC8181;">LV.1</div>
+                    <div class="level-desc">質量單位配對<br><strong>(kg ↔ g)</strong></div>
+                    <div class="highscore-badge" id="high-1">最佳: 0 分</div>
+                </div>
+                <!-- LV.2 -->
+                <div class="level-card" onclick="startGame(2)">
+                    <div class="level-num" style="color: #63B3ED;">LV.2</div>
+                    <div class="level-desc">容積單位配對<br><strong>(L ↔ mL)</strong></div>
+                    <div class="highscore-badge" id="high-2">最佳: 0 分</div>
+                </div>
+                <!-- LV.3 -->
+                <div class="level-card" onclick="startGame(3)">
+                    <div class="level-num" style="color: #B794F4;">LV.3</div>
+                    <div class="level-desc">長度單位配對<br><strong>(km/m/cm/mm)</strong></div>
+                    <div class="highscore-badge" id="high-3">最佳: 0 分</div>
+                </div>
+                <!-- LV.4 -->
+                <div class="level-card" onclick="startGame(4)">
+                    <div class="level-num" style="color: #F6AD55;">LV.4</div>
+                    <div class="level-desc">時間單位配對<br><strong>(hr ↔ min)</strong></div>
+                    <div class="highscore-badge" id="high-4">最佳: 0 分</div>
+                </div>
+                <!-- LV.5 -->
+                <div class="level-card" onclick="startGame(5)">
+                    <div class="level-num" style="color: #68D391;">LV.5</div>
+                    <div class="level-desc">綜合學科賽道<br><strong>(全體系混合賽)</strong></div>
+                    <div class="highscore-badge" id="high-5">最佳: 0 分</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 結算畫面 -->
+        <div id="settlement-overlay">
+            <div class="settlement-title">🏆 挑戰完成！🏎️</div>
+            <div class="score-display-row">總得分：<span id="final-score" style="color: #FFE259;">0</span> 分</div>
+            <div class="combo-bonus-row">連擊總獎勵：+<span id="final-combo-bonus">0</span> 分</div>
+            
+            <div id="perfect-badge-container">
+                <div class="gold-badge">🎖️</div>
+                <div class="badge-text">完美無缺！PERFECT</div>
+            </div>
+            
+            <div class="settlement-btn-row">
+                <button class="settlement-btn btn-restart" onclick="restartLevel()">重新挑戰 🔄</button>
+                <button class="settlement-btn btn-menu" onclick="showMainMenu()">返回主選單 🏠</button>
+            </div>
+        </div>
+
+        <!-- HTML Toast 容器 -->
+        <div id="toast-container" class="toast-container"></div>
+
+        <!-- 開發者工具面板 -->
+        <div id="dev-panel">
+            <div class="dev-title">🔧 開發者測試面板</div>
+            <button class="dev-btn" onclick="devInstantWin()">🏆 一鍵完美通關 (Perfect)</button>
+            <button class="dev-btn" onclick="devSimulateTimeout()">⏱️ 模擬秒數超時</button>
+            <button class="dev-btn" onclick="devSkipQuestion()">⏭️ 直接跳至下一題</button>
+            <button class="dev-btn" onclick="devSwitchLevel4()">⚡ 強制切換 LV.4 (時間)</button>
+            <button class="dev-btn dev-btn-close" onclick="document.getElementById('dev-panel').style.display='none'">關閉面板</button>
+        </div>
+
+    </div>
+
+    <!-- ==========================================================================
+         JavaScript 核心控制邏輯
+         ========================================================================== -->
+    <script>
+        /* ==========================================================================
+           1. SafeStorage 安全沙盒物件 (完全防止在限制 iframe 下調用 localStorage 崩潰)
+           ========================================================================== */
+        const SafeStorage = {
+            _mem: {},
+            getItem(key) {
+                try {
+                    return window.localStorage.getItem(key);
+                } catch (e) {
+                    console.warn("Storage access denied in sandboxed iframe. Using memory backup.", e);
+                    return this._mem[key] || null;
+                }
+            },
+            setItem(key, value) {
+                try {
+                    window.localStorage.setItem(key, value);
+                } catch (e) {
+                    console.warn("Storage write denied in sandboxed iframe. Saving in memory backup.", e);
+                    this._mem[key] = value;
+                }
+            }
+        };
+
+        const STORAGE_PREFIX = "speed_unit_racing_";
+        function getHighScore(level) {
+            const val = SafeStorage.getItem(STORAGE_PREFIX + "high_" + level);
+            return val ? parseInt(val, 10) : 0;
+        }
+        function saveHighScore(level, score) {
+            const currentHigh = getHighScore(level);
+            if (score > currentHigh) {
+                SafeStorage.setItem(STORAGE_PREFIX + "high_" + level, score);
+                return true;
+            }
+            return false;
+        }
+
+        /* ==========================================================================
+           2. 絕對 RWD 等比縮放計算
+           ========================================================================== */
+        function handleResize() {
+            const viewport = document.getElementById('game-viewport');
+            if (!viewport) return;
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            const targetW = 1280;
+            const targetH = 720;
+            const scale = Math.min(w / targetW, h / targetH);
+            viewport.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        }
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('orientationchange', handleResize);
+        // 初始化縮放
+        handleResize();
+
+        /* ==========================================================================
+           3. 嚴謹對稱式出題資料庫 (無小數漂移、設計 pedagogical 誘餌)
+           ========================================================================== */
+        const massData = [
+            { fromVal: 1.5, fromUnit: 'kg', toVal: 1500, toUnit: 'g', levelType: 'MASS' },
+            { fromVal: 0.5, fromUnit: 'kg', toVal: 500, toUnit: 'g', levelType: 'MASS' },
+            { fromVal: 0.25, fromUnit: 'kg', toVal: 250, toUnit: 'g', levelType: 'MASS' },
+            { fromVal: 0.08, fromUnit: 'kg', toVal: 80, toUnit: 'g', levelType: 'MASS' },
+            { fromVal: 4.2, fromUnit: 'kg', toVal: 4200, toUnit: 'g', levelType: 'MASS' },
+            { fromVal: 1250, fromUnit: 'g', toVal: 1.25, toUnit: 'kg', levelType: 'MASS' },
+            { fromVal: 600, fromUnit: 'g', toVal: 0.6, toUnit: 'kg', levelType: 'MASS' },
+            { fromVal: 75, fromUnit: 'g', toVal: 0.075, toUnit: 'kg', levelType: 'MASS' },
+            { fromVal: 3000, fromUnit: 'g', toVal: 3, toUnit: 'kg', levelType: 'MASS' },
+            { fromVal: 950, fromUnit: 'g', toVal: 0.95, toUnit: 'kg', levelType: 'MASS' }
+        ];
+
+        const volumeData = [
+            { fromVal: 2, fromUnit: 'L', toVal: 2000, toUnit: 'mL', levelType: 'VOLUME' },
+            { fromVal: 0.75, fromUnit: 'L', toVal: 750, toUnit: 'mL', levelType: 'VOLUME' },
+            { fromVal: 0.4, fromUnit: 'L', toVal: 400, toUnit: 'mL', levelType: 'VOLUME' },
+            { fromVal: 1.8, fromUnit: 'L', toVal: 1800, toUnit: 'mL', levelType: 'VOLUME' },
+            { fromVal: 0.05, fromUnit: 'L', toVal: 50, toUnit: 'mL', levelType: 'VOLUME' },
+            { fromVal: 350, fromUnit: 'mL', toVal: 0.35, toUnit: 'L', levelType: 'VOLUME' },
+            { fromVal: 1500, fromUnit: 'mL', toVal: 1.5, toUnit: 'L', levelType: 'VOLUME' },
+            { fromVal: 90, fromUnit: 'mL', toVal: 0.09, toUnit: 'L', levelType: 'VOLUME' },
+            { fromVal: 600, fromUnit: 'mL', toVal: 0.6, toUnit: 'L', levelType: 'VOLUME' },
+            { fromVal: 2500, fromUnit: 'mL', toVal: 2.5, toUnit: 'L', levelType: 'VOLUME' }
+        ];
+
+        const lengthData = [
+            { fromVal: 1.2, fromUnit: 'km', toVal: 1200, toUnit: 'm', levelType: 'LENGTH' },
+            { fromVal: 3.5, fromUnit: 'm', toVal: 350, toUnit: 'cm', levelType: 'LENGTH' },
+            { fromVal: 15, fromUnit: 'cm', toVal: 150, toUnit: 'mm', levelType: 'LENGTH' },
+            { fromVal: 0.8, fromUnit: 'm', toVal: 800, toUnit: 'mm', levelType: 'LENGTH' },
+            { fromVal: 0.05, fromUnit: 'km', toVal: 50, toUnit: 'm', levelType: 'LENGTH' },
+            { fromVal: 250, fromUnit: 'mm', toVal: 25, toUnit: 'cm', levelType: 'LENGTH' },
+            { fromVal: 80, fromUnit: 'cm', toVal: 0.8, toUnit: 'm', levelType: 'LENGTH' },
+            { fromVal: 4500, fromUnit: 'm', toVal: 4.5, toUnit: 'km', levelType: 'LENGTH' },
+            { fromVal: 6, fromUnit: 'm', toVal: 600, toUnit: 'cm', levelType: 'LENGTH' },
+            { fromVal: 1200, fromUnit: 'mm', toVal: 1.2, toUnit: 'm', levelType: 'LENGTH' }
+        ];
+
+        // 嚴謹設計 nice fractions (去除除不盡的小數點)
+        const timeData = [
+            { fromVal: 0.25, fromUnit: 'hr', toVal: 15, toUnit: 'min', levelType: 'TIME' },
+            { fromVal: 0.5, fromUnit: 'hr', toVal: 30, toUnit: 'min', levelType: 'TIME' },
+            { fromVal: 0.75, fromUnit: 'hr', toVal: 45, toUnit: 'min', levelType: 'TIME' },
+            { fromVal: 1.5, fromUnit: 'hr', toVal: 90, toUnit: 'min', levelType: 'TIME' },
+            { fromVal: 1.2, fromUnit: 'hr', toVal: 72, toUnit: 'min', levelType: 'TIME' },
+            { fromVal: 6, fromUnit: 'min', toVal: 0.1, toUnit: 'hr', levelType: 'TIME' },
+            { fromVal: 18, fromUnit: 'min', toVal: 0.3, toUnit: 'hr', levelType: 'TIME' },
+            { fromVal: 24, fromUnit: 'min', toVal: 0.4, toUnit: 'hr', levelType: 'TIME' },
+            { fromVal: 48, fromUnit: 'min', toVal: 0.8, toUnit: 'hr', levelType: 'TIME' },
+            { fromVal: 150, fromUnit: 'min', toVal: 2.5, toUnit: 'hr', levelType: 'TIME' }
+        ];
+
+        /* ==========================================================================
+           4. Web Audio API 音效引擎 (避免外部資源依賴，隨 combo 自動攀升頻率)
+           ========================================================================== */
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSynthSound(type, combo = 1) {
+            try {
+                initAudio();
+                if (!audioCtx) return;
+                
+                // 若音訊處於暫停狀態，嘗試重啟
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                const now = audioCtx.currentTime;
+                
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                } else if (type === 'correct') {
+                    osc.type = 'triangle';
+                    // 隨 combo 遞增提高基音頻率
+                    const baseFreq = 523.25; // C5
+                    const factor = 1 + (combo - 1) * 0.08;
+                    osc.frequency.setValueAtTime(baseFreq * factor, now);
+                    osc.frequency.exponentialRampToValueAtTime(baseFreq * factor * 1.5, now + 0.2);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (type === 'incorrect') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.linearRampToValueAtTime(110, now + 0.35);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (type === 'win') {
+                    // 勝利琶音
+                    const freqs = [523.25, 659.25, 783.99, 1046.5];
+                    freqs.forEach((f, idx) => {
+                        const subOsc = audioCtx.createOscillator();
+                        const subGain = audioCtx.createGain();
+                        subOsc.connect(subGain);
+                        subGain.connect(audioCtx.destination);
+                        subOsc.type = 'sine';
+                        subOsc.frequency.setValueAtTime(f, now + idx * 0.1);
+                        subGain.gain.setValueAtTime(0.1, now + idx * 0.1);
+                        subGain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.3);
+                        subOsc.start(now + idx * 0.1);
+                        subOsc.stop(now + idx * 0.1 + 0.3);
+                    });
+                }
+            } catch (e) {
+                console.warn("AudioContext active failed:", e);
+            }
+        }
+
+        /* ==========================================================================
+           5. 遊戲核心變數與生命週期控制
+           ========================================================================== */
+        let currentLevel = 1;
+        let questionIndex = 0;
+        let score = 0;
+        let combo = 0;
+        let totalScore = 0;
+        let totalComboBonus = 0;
+        let attempts = 3;
+        let isPerfect = true;
+        let questions = [];
+        let timerId = null;
+        let startTime = null;
+        const QUESTION_TIMEOUT = 12000; // 每題 12 秒
+        let timeRemaining = QUESTION_TIMEOUT;
+
+        // 洗牌演算法
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // 載入首頁高分紀錄
+        function loadHighScoresToMenu() {
+            for (let l = 1; l <= 5; l++) {
+                const val = getHighScore(l);
+                const el = document.getElementById(`high-${l}`);
+                if (el) el.textContent = `最佳: ${val} 分`;
+            }
+        }
+
+        // 初始化微前端廣播
+        window.addEventListener('DOMContentLoaded', () => {
+            loadHighScoresToMenu();
+            if (window.parent !== window) {
+                window.parent.postMessage({ type: 'GAME_READY', challengeId: 2 }, '*');
+            }
+        });
+
+        // 監聽微前端啟動控制
+        window.addEventListener('message', (event) => {
+            const data = event.data;
+            if (data && data.type === 'START_GAME') {
+                const config = data.config || {};
+                const lvl = config.level || 1;
+                startGame(lvl);
+            }
+        });
+
+        /* ==========================================================================
+           6. 題目與誘餌建構引擎 (解決高精度配對、避免產生浮點數冗餘)
+           ========================================================================== */
+        function getFormulaExplanation(q) {
+            const fVal = q.fromVal;
+            const fUnit = q.unitFrom;
+            const tVal = q.toVal;
+            const tUnit = q.unitTo;
+            
+            if (q.levelType === 'MASS') {
+                if (fUnit === 'kg' && tUnit === 'g') {
+                    return `因為 1 kg = 1000 g (大變小用乘法)<br>算式：<strong>${fVal} × 1000 = ${tVal} g</strong>`;
+                } else {
+                    return `因為 1 kg = 1000 g (小變大用除法)<br>算式：<strong>${fVal} ÷ 1000 = ${tVal} kg</strong>`;
+                }
+            } else if (q.levelType === 'VOLUME') {
+                if (fUnit === 'L' && tUnit === 'mL') {
+                    return `因為 1 L = 1000 mL (大變小用乘法)<br>算式：<strong>${fVal} × 1000 = ${tVal} mL</strong>`;
+                } else {
+                    return `因為 1 L = 1000 mL (小變大用除法)<br>算式：<strong>${fVal} ÷ 1000 = ${tVal} L</strong>`;
+                }
+            } else if (q.levelType === 'LENGTH') {
+                if (fUnit === 'km' && tUnit === 'm') {
+                    return `因為 1 km = 1000 m (大變小用乘法)<br>算式：<strong>${fVal} × 1000 = ${tVal} m</strong>`;
+                } else if (fUnit === 'm' && tUnit === 'cm') {
+                    return `因為 1 m = 100 cm (大變小用乘法)<br>算式：<strong>${fVal} × 100 = ${tVal} cm</strong>`;
+                } else if (fUnit === 'cm' && tUnit === 'mm') {
+                    return `因為 1 cm = 10 mm (大變小用乘法)<br>算式：<strong>${fVal} × 10 = ${tVal} mm</strong>`;
+                } else if (fUnit === 'm' && tUnit === 'mm') {
+                    return `因為 1 m = 1000 mm (大變小用乘法)<br>算式：<strong>${fVal} × 1000 = ${tVal} mm</strong>`;
+                } else if (fUnit === 'mm' && tUnit === 'cm') {
+                    return `因為 1 cm = 10 mm (小變大用除法)<br>算式：<strong>${fVal} ÷ 10 = ${tVal} cm</strong>`;
+                } else if (fUnit === 'cm' && tUnit === 'm') {
+                    return `因為 1 m = 100 cm (小變大用除法)<br>算式：<strong>${fVal} ÷ 100 = ${tVal} m</strong>`;
+                } else if (fUnit === 'm' && tUnit === 'km') {
+                    return `因為 1 km = 1000 m (小變大用除法)<br>算式：<strong>${fVal} ÷ 1000 = ${tVal} km</strong>`;
+                } else if (fUnit === 'mm' && tUnit === 'm') {
+                    return `因為 1 m = 1000 mm (小變大用除法)<br>算式：<strong>${fVal} ÷ 1000 = ${tVal} m</strong>`;
+                }
+            } else if (q.levelType === 'TIME') {
+                if (fUnit === 'hr' && tUnit === 'min') {
+                    return `因為 1 hr = 60 min (大變小用乘法)<br>算式：<strong>${fVal} × 60 = ${tVal} min</strong>`;
+                } else {
+                    return `因為 1 hr = 60 min (小變大用除法)<br>算式：<strong>${fVal} ÷ 60 = ${tVal} hr</strong>`;
+                }
+            }
+            return `${fVal} ${fUnit} = ${tVal} ${tUnit}`;
+        }
+
+        function buildOptions(q) {
+            const correct = q.toVal;
+            const from = q.fromVal;
+            const unitF = q.unitFrom;
+            const unitT = q.unitTo;
+            
+            const set = new Set();
+            set.add(correct);
+            
+            const fmt = n => parseFloat(Number(n).toFixed(4));
+            
+            // 根據不同類型動態生成干擾項
+            if (unitF === 'hr' && unitT === 'min') {
+                set.add(fmt(from * 100)); // 小數直接當成分鐘錯誤 (如 0.25hr -> 25min)
+                set.add(fmt(correct * 10)); // 位移錯誤
+                set.add(fmt(correct / 10));
+            } else if (unitF === 'min' && unitT === 'hr') {
+                set.add(fmt(from / 100)); // 例如 15min -> 0.15hr
+                set.add(fmt(correct * 10));
+                set.add(fmt(correct / 10));
+            } else {
+                // Metric 單位換算常見位移錯誤
+                set.add(fmt(correct / 10));  
+                set.add(fmt(correct * 10));  
+                if (correct > from) {
+                    set.add(fmt(from / (correct / from))); // 乘除反轉錯誤
+                } else {
+                    set.add(fmt(from * (from / correct))); // 乘除反轉錯誤
+                }
+            }
+            
+            // 安全防護：若元素不足 4 個則亂數填充
+            let multiplier = 2;
+            while (set.size < 4) {
+                set.add(fmt(correct * multiplier));
+                set.add(fmt(correct / multiplier));
+                multiplier += 1.5;
+            }
+            
+            const arr = Array.from(set);
+            shuffleArray(arr);
+            return arr;
+        }
+
+        /* ==========================================================================
+           7. 啟動關卡與載入題目
+           ========================================================================== */
+        function startGame(level) {
+            playSynthSound('click');
+            currentLevel = level;
+            questionIndex = 0;
+            score = 0;
+            combo = 0;
+            totalComboBonus = 0;
+            isPerfect = true;
+
+            // 挑選基礎題庫
+            let rawPool = [];
+            if (level === 1) rawPool = [...massData];
+            else if (level === 2) rawPool = [...volumeData];
+            else if (level === 3) rawPool = [...lengthData];
+            else if (level === 4) rawPool = [...timeData];
+            else if (level === 5) rawPool = [...massData, ...volumeData, ...lengthData, ...timeData];
+
+            shuffleArray(rawPool);
+            
+            // 取前 10 題
+            const selected = rawPool.slice(0, 10);
+            
+            questions = selected.map(q => {
+                const opt = buildOptions(q);
+                return {
+                    fromVal: q.fromVal,
+                    unitFrom: q.unitFrom,
+                    toVal: q.toVal,
+                    unitTo: q.toUnit,
+                    levelType: q.levelType,
+                    options: opt,
+                    correctIndex: opt.indexOf(q.toVal),
+                    formula: getFormulaExplanation(q)
+                };
+            });
+
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('settlement-overlay').style.display = 'none';
+            
+            loadQuestion(0);
+        }
+
+        function loadQuestion(index) {
+            questionIndex = index;
+            attempts = 3;
+            
+            // 恢復 State A 面板渲染狀態
+            document.getElementById('game-viewport').classList.remove('state-b');
+            const cardContainer = document.getElementById('card-container');
+            cardContainer.classList.remove('flipped');
+            
+            // 絕對隔離 Webkit 穿透
+            document.getElementById('card-front').style.display = 'flex';
+            document.getElementById('card-back').style.display = 'none';
+
+            const q = questions[index];
+            
+            // 寫入題目
+            document.getElementById('q-val-from').textContent = q.fromVal;
+            document.getElementById('q-unit-from').textContent = q.unitFrom;
+            document.getElementById('q-unit-to').textContent = q.unitTo;
+
+            // 寫入選項
+            resetOptionButtons();
+            for (let i = 0; i < 4; i++) {
+                document.getElementById(`opt-${i}`).textContent = q.options[i];
+            }
+
+            // 更新頂部數據
+            document.getElementById('question-progress').textContent = `${index + 1} / 10`;
+            document.getElementById('score-badge').textContent = `得分: ${score}`;
+            document.getElementById('combo-badge').textContent = `連擊: ${combo}`;
+
+            // 更新賽車跑道位置
+            updateRacingCarPosition();
+
+            // 重置折疊式公式狀態
+            resetFormulaPanel();
+
+            // 啟動高精度定時器
+            startQuestionTimer();
+        }
+
+        function resetOptionButtons() {
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach(btn => {
+                btn.disabled = false;
+                btn.classList.remove('disabled');
+            });
+        }
+
+        function updateRacingCarPosition() {
+            const car = document.getElementById('racing-car');
+            if (!car) return;
+            const progress = questionIndex / 10; 
+            
+            const track = document.querySelector('.racing-track-container');
+            const trackWidth = track.offsetWidth || 1200;
+            const startPos = 20;
+            const endPos = trackWidth - 80;
+            const currentPos = startPos + (endPos - startPos) * progress;
+            
+            car.style.left = `${currentPos}px`;
+        }
+
+        /* ==========================================================================
+           8. 高精度 requestAnimationFrame 定時器 (完全防止背景漂移與失能)
+           ========================================================================== */
+        function startQuestionTimer() {
+            stopQuestionTimer();
+            startTime = performance.now();
+            
+            function tick(now) {
+                const elapsed = now - startTime;
+                timeRemaining = Math.max(QUESTION_TIMEOUT - elapsed, 0);
+                const percent = (timeRemaining / QUESTION_TIMEOUT) * 100;
+                
+                const timerBar = document.getElementById('timer-bar');
+                if (timerBar) {
+                    timerBar.style.width = `${percent}%`;
+                    
+                    if (percent > 50) {
+                        timerBar.style.background = 'linear-gradient(90deg, #FFAE34, #FF7E36)';
+                    } else if (percent > 20) {
+                        timerBar.style.background = 'linear-gradient(90deg, #FF7E36, #FF4D4D)';
+                    } else {
+                        timerBar.style.background = 'linear-gradient(90deg, #FF4D4D, #D32F2F)';
+                    }
+                }
+                
+                if (timeRemaining <= 0) {
+                    handleTimeout();
+                } else {
+                    timerId = requestAnimationFrame(tick);
+                }
+            }
+            timerId = requestAnimationFrame(tick);
+        }
+
+        function stopQuestionTimer() {
+            if (timerId) {
+                cancelAnimationFrame(timerId);
+                timerId = null;
+            }
+        }
+
+        function handleTimeout() {
+            stopQuestionTimer();
+            combo = 0;
+            isPerfect = false;
+            showToast("時間到！來看看解題觀念吧 ⏱️", "error");
+            flipToStateB();
+        }
+
+        /* ==========================================================================
+           9. 答題點擊判定機制 (三段式階梯計分 + 連擊 Combo 機制)
+           ========================================================================== */
+        function selectOption(index) {
+            stopQuestionTimer();
+            const q = questions[questionIndex];
+            
+            if (index === q.correctIndex) {
+                // 答對
+                let ptsEarned = 10;
+                if (attempts === 3) ptsEarned = 20;
+                else if (attempts === 2) ptsEarned = 15;
+                
+                let comboBonus = 0;
+                if (attempts === 3) {
+                    combo++;
+                    if (combo >= 2) {
+                        comboBonus = combo * 2;
+                    }
+                } else {
+                    combo = 0; // 非首選正確直接中斷連擊
+                }
+
+                score += (ptsEarned + comboBonus);
+                totalComboBonus += comboBonus;
+
+                playSynthSound('correct', combo);
+                
+                if (comboBonus > 0) {
+                    showToast(`答對！+${ptsEarned} 分 (連擊 BONUS +${comboBonus} 分！) 🎉`, "success");
+                } else {
+                    showToast(`答對！+${ptsEarned} 分！🎉`, "success");
+                }
+
+                flipToStateB();
+            } else {
+                // 答錯
+                playSynthSound('incorrect');
+                attempts--;
+                isPerfect = false;
+                combo = 0; // 重置連擊
+
+                if (attempts > 0) {
+                    showToast(`配對錯誤！剩餘 ${attempts} 次機會 ⚠️`, "error");
+                    const btn = document.querySelectorAll('.option-btn')[index];
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.classList.add('disabled');
+                    }
+                    // 重啟計時
+                    startQuestionTimer();
+                } else {
+                    showToast("機會用完了，來看看解法吧！", "error");
+                    flipToStateB();
+                }
+            }
+        }
+
+        /* ==========================================================================
+           10. Step 4 觀念救援 SVG 動態生成引擎 (質量、體積、長度、時間)
+           ========================================================================== */
+        function drawVisualConceptSVG(q) {
+            const container = document.getElementById('hint-svg-placeholder');
+            if (!container) return;
+
+            const lvlType = q.levelType;
+            const fromV = q.fromVal;
+            const toV = q.toVal;
+            const fromU = q.unitFrom;
+            const toU = q.unitTo;
+
+            let svg = '';
+
+            if (lvlType === 'MASS') {
+                // LV.1 等臂天平法碼平衡圖
+                svg = `
+                <svg width="300" height="200" viewBox="0 0 300 200" style="display:block; margin:auto;">
+                    <!-- 支架立柱 -->
+                    <rect x="145" y="40" width="10" height="130" fill="#718096" rx="3"/>
+                    <rect x="110" y="170" width="80" height="15" fill="#4A5568" rx="4"/>
+                    <polygon points="150,40 138,60 162,60" fill="#2D3748" />
+                    
+                    <!-- 天平橫樑 (水平線，代表完美等值配對) -->
+                    <line x1="60" y1="60" x2="240" y2="60" stroke="#4A5568" stroke-width="6" stroke-linecap="round"/>
+                    
+                    <!-- 左吊盤 -->
+                    <line x1="60" y1="60" x2="40" y2="130" stroke="#A0AEC0" stroke-width="2"/>
+                    <line x1="60" y1="60" x2="80" y2="130" stroke="#A0AEC0" stroke-width="2"/>
+                    <line x1="30" y1="130" x2="90" y2="130" stroke="#4A5568" stroke-width="4"/>
+                    <!-- 左法碼 -->
+                    <rect x="42" y="100" width="36" height="30" fill="#FEB2B2" rx="6" stroke="#FC8181" stroke-width="2" />
+                    <text x="60" y="118" font-family="'Zen Maru Gothic', sans-serif" font-size="11" font-weight="bold" fill="#2D3748" text-anchor="middle">${fromV} ${fromU}</text>
+                    
+                    <!-- 右吊盤 -->
+                    <line x1="240" y1="60" x2="220" y2="130" stroke="#A0AEC0" stroke-width="2"/>
+                    <line x1="240" y1="60" x2="260" y2="130" stroke="#A0AEC0" stroke-width="2"/>
+                    <line x1="210" y1="130" x2="270" y2="130" stroke="#4A5568" stroke-width="4"/>
+                    <!-- 右法碼 -->
+                    <rect x="222" y="100" width="36" height="30" fill="#9AE6B4" rx="6" stroke="#68D391" stroke-width="2" />
+                    <text x="240" y="118" font-family="'Zen Maru Gothic', sans-serif" font-size="11" font-weight="bold" fill="#2D3748" text-anchor="middle">${toV} ${toU}</text>
+                    
+                    <!-- 核心等號 -->
+                    <text x="150" y="120" font-family="sans-serif" font-size="28" font-weight="bold" fill="#4A5568" text-anchor="middle">=</text>
+                    <text x="150" y="25" font-family="'Zen Maru Gothic', sans-serif" font-size="12" font-weight="bold" fill="#718096" text-anchor="middle">等值天平：兩端質量完全相等</text>
+                </svg>
+                `;
+            } else if (lvlType === 'VOLUME') {
+                // LV.2 量筒液位著色比例圖
+                let targetML = (toU === 'mL') ? toV : fromV;
+                let maxML = 2000;
+                if (targetML > 2000) maxML = 5000;
+                // 防止溢出與過小
+                let fillRatio = Math.min(Math.max(targetML / maxML, 0.15), 0.85); 
+                let fillH = fillRatio * 110;
+                
+                svg = `
+                <svg width="300" height="200" viewBox="0 0 300 200" style="display:block; margin:auto;">
+                    <!-- 量筒外壁 -->
+                    <rect x="110" y="40" width="80" height="130" rx="10" fill="#FFFDF9" stroke="#718096" stroke-width="4" />
+                    <ellipse cx="150" cy="170" rx="55" ry="10" fill="#E2E8F0" stroke="#4A5568" stroke-width="4" />
+                    
+                    <!-- 水位著色 (馬卡龍藍) -->
+                    <rect x="114" y="${168 - fillH}" width="72" height="${fillH}" rx="4" fill="rgba(144, 205, 244, 0.85)" />
+                    
+                    <!-- 刻度指標 -->
+                    <line x1="110" y1="50" x2="125" y2="50" stroke="#4A5568" stroke-width="2"/>
+                    <line x1="110" y1="80" x2="120" y2="80" stroke="#4A5568" stroke-width="2"/>
+                    <line x1="110" y1="110" x2="125" y2="110" stroke="#4A5568" stroke-width="2"/>
+                    <line x1="110" y1="140" x2="120" y2="140" stroke="#4A5568" stroke-width="2"/>
+                    
+                    <text x="100" y="55" font-family="sans-serif" font-size="10" fill="#718096" text-anchor="end">${maxML} mL</text>
+                    <text x="100" y="115" font-family="sans-serif" font-size="10" fill="#718096" text-anchor="end">${maxML / 2} mL</text>
+                    
+                    <!-- 量筒內容量數值標籤 -->
+                    <text x="150" y="${174 - fillH/2}" font-family="'Zen Maru Gothic', sans-serif" font-size="11" font-weight="bold" fill="#2B6CB0" text-anchor="middle">${fromV} ${fromU}</text>
+                    
+                    <!-- 轉換指引 -->
+                    <path d="M 205 100 L 225 100" stroke="#4A5568" stroke-width="2" stroke-dasharray="2" marker-end="url(#arrow-vol)" />
+                    <text x="260" y="105" font-family="'Zen Maru Gothic', sans-serif" font-size="13" font-weight="bold" fill="#2F855A" text-anchor="middle">${toV} ${toU}</text>
+                    
+                    <defs>
+                        <marker id="arrow-vol" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#4A5568" />
+                        </marker>
+                    </defs>
+                </svg>
+                `;
+            } else if (lvlType === 'LENGTH') {
+                // LV.3 長度換算跳板階梯圖
+                const highlightKm = (fromU === 'km' || toU === 'km') ? '#ECC94B' : '#CBD5E0';
+                const highlightM = (fromU === 'm' || toU === 'm') ? '#4299E1' : '#CBD5E0';
+                const highlightCm = (fromU === 'cm' || toU === 'cm') ? '#9F7AEA' : '#CBD5E0';
+                const highlightMm = (fromU === 'mm' || toU === 'mm') ? '#ED64A6' : '#CBD5E0';
+
+                svg = `
+                <svg width="300" height="200" viewBox="0 0 300 200" style="display:block; margin:auto;">
+                    <!-- 單位節點 -->
+                    <circle cx="45" cy="110" r="22" fill="${highlightKm}" stroke="#4A5568" stroke-width="3"/>
+                    <text x="45" y="115" font-family="sans-serif" font-size="12" font-weight="bold" fill="#2D3748" text-anchor="middle">km</text>
+                    
+                    <circle cx="115" cy="110" r="22" fill="${highlightM}" stroke="#4A5568" stroke-width="3"/>
+                    <text x="115" y="115" font-family="sans-serif" font-size="12" font-weight="bold" fill="#2D3748" text-anchor="middle">m</text>
+                    
+                    <circle cx="185" cy="110" r="22" fill="${highlightCm}" stroke="#4A5568" stroke-width="3"/>
+                    <text x="185" y="115" font-family="sans-serif" font-size="12" font-weight="bold" fill="#2D3748" text-anchor="middle">cm</text>
+                    
+                    <circle cx="255" cy="110" r="22" fill="${highlightMm}" stroke="#4A5568" stroke-width="3"/>
+                    <text x="255" y="115" font-family="sans-serif" font-size="12" font-weight="bold" fill="#2D3748" text-anchor="middle">mm</text>
+                    
+                    <!-- 乘法箭頭 (大變小，順向) -->
+                    <path d="M 55 85 Q 80 60 105 85" fill="none" stroke="#2B6CB0" stroke-width="2" marker-end="url(#arrow-len)"/>
+                    <text x="80" y="65" font-family="sans-serif" font-size="9" font-weight="bold" fill="#2B6CB0" text-anchor="middle">×1000</text>
+                    
+                    <path d="M 125 85 Q 150 60 175 85" fill="none" stroke="#2B6CB0" stroke-width="2" marker-end="url(#arrow-len)"/>
+                    <text x="150" y="65" font-family="sans-serif" font-size="9" font-weight="bold" fill="#2B6CB0" text-anchor="middle">×100</text>
+                    
+                    <path d="M 195 85 Q 220 60 245 85" fill="none" stroke="#2B6CB0" stroke-width="2" marker-end="url(#arrow-len)"/>
+                    <text x="220" y="65" font-family="sans-serif" font-size="9" font-weight="bold" fill="#2B6CB0" text-anchor="middle">×10</text>
+                    
+                    <!-- 除法箭頭 (小變大，逆向) -->
+                    <path d="M 245 135 Q 220 160 195 135" fill="none" stroke="#C53030" stroke-width="2" marker-end="url(#arrow-len-rev)"/>
+                    <text x="220" y="158" font-family="sans-serif" font-size="9" font-weight="bold" fill="#C53030" text-anchor="middle">÷10</text>
+                    
+                    <path d="M 175 135 Q 150 160 125 135" fill="none" stroke="#C53030" stroke-width="2" marker-end="url(#arrow-len-rev)"/>
+                    <text x="150" y="158" font-family="sans-serif" font-size="9" font-weight="bold" fill="#C53030" text-anchor="middle">÷100</text>
+                    
+                    <path d="M 105 135 Q 80 160 55 135" fill="none" stroke="#C53030" stroke-width="2" marker-end="url(#arrow-len-rev)"/>
+                    <text x="80" y="158" font-family="sans-serif" font-size="9" font-weight="bold" fill="#C53030" text-anchor="middle">÷1000</text>
+                    
+                    <text x="150" y="25" font-family="'Zen Maru Gothic', sans-serif" font-size="11" font-weight="bold" fill="#2D3748" text-anchor="middle">長度級聯關係示意圖</text>
+                    
+                    <defs>
+                        <marker id="arrow-len" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#2B6CB0" />
+                        </marker>
+                        <marker id="arrow-len-rev" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 10 0 L 0 5 L 10 10 z" fill="#C53030" />
+                        </marker>
+                    </defs>
+                </svg>
+                `;
+            } else if (lvlType === 'TIME') {
+                // LV.4 鐘面扇形對齊比例圖
+                let hrVal = (fromU === 'hr') ? fromV : toV;
+                // 用模數取 1.0 的扇形比例，若是大於 1 則顯示飽滿度
+                const displayRatio = hrVal % 1.0 === 0 ? 1.0 : (hrVal % 1.0);
+                const angle = displayRatio * 2 * Math.PI;
+                const r = 55;
+                const cx = 150;
+                const cy = 95;
+                
+                const startX = cx;
+                const startY = cy - r;
+                const endX = cx + r * Math.sin(angle);
+                const endY = cy - r * Math.cos(angle);
+                const largeArc = displayRatio > 0.5 ? 1 : 0;
+
+                let pathD = '';
+                if (displayRatio >= 1.0) {
+                    pathD = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="rgba(252, 129, 129, 0.6)" stroke="#FC8181" stroke-width="2"/>`;
+                } else {
+                    pathD = `<path d="M ${cx} ${cy} L ${startX} ${startY} A ${r} ${r} 0 ${largeArc} 1 ${endX} ${endY} Z" fill="rgba(252, 129, 129, 0.6)" stroke="#FC8181" stroke-width="2" />`;
+                }
+
+                svg = `
+                <svg width="300" height="200" viewBox="0 0 300 200" style="display:block; margin:auto;">
+                    <!-- 鐘面外框 -->
+                    <circle cx="${cx}" cy="${cy}" r="65" fill="#FFFFFF" stroke="#4A5568" stroke-width="5" />
+                    <circle cx="${cx}" cy="${cy}" r="58" fill="#F7FAFC" />
+                    
+                    <!-- 時間比例扇形區 -->
+                    ${pathD}
+                    
+                    <!-- 時鐘刻度 -->
+                    <line x1="${cx}" y1="${cy - 65}" x2="${cx}" y2="${cy - 57}" stroke="#2D3748" stroke-width="3"/>
+                    <line x1="${cx + 65}" y1="${cy}" x2="${cx + 57}" y2="${cy}" stroke="#2D3748" stroke-width="3"/>
+                    <line x1="${cx}" y1="${cy + 65}" x2="${cx}" y2="${cy + 57}" stroke="#2D3748" stroke-width="3"/>
+                    <line x1="${cx - 65}" y1="${cy}" x2="${cx - 57}" y2="${cy}" stroke="#2D3748" stroke-width="3"/>
+                    
+                    <!-- 分針 (紅，指向當前分鐘比值) -->
+                    <line x1="${cx}" y1="${cy}" x2="${endX}" y2="${endY}" stroke="#E53E3E" stroke-width="3" stroke-linecap="round"/>
+                    <!-- 時針 (短，靜止指向 12) -->
+                    <line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy - 35}" stroke="#2D3748" stroke-width="4" stroke-linecap="round"/>
+                    
+                    <!-- 圓心軸點 -->
+                    <circle cx="${cx}" cy="${cy}" r="6" fill="#2D3748" />
+                    
+                    <text x="50" y="100" font-family="'Zen Maru Gothic', sans-serif" font-size="12" font-weight="bold" fill="#B83280" text-anchor="middle">${fromV} ${fromU}</text>
+                    <text x="250" y="100" font-family="'Zen Maru Gothic', sans-serif" font-size="12" font-weight="bold" fill="#2B6CB0" text-anchor="middle">${toV} ${toU}</text>
+                    
+                    <text x="150" y="24" font-family="'Zen Maru Gothic', sans-serif" font-size="11" font-weight="bold" fill="#718096" text-anchor="middle">時間轉盤：1 小時 = 60 分鐘</text>
+                </svg>
+                `;
+            }
+
+            container.innerHTML = svg;
+        }
+
+        /* ==========================================================================
+           11. 卡片翻轉邏輯與 iOS WebKit 行動端安全防穿透
+           ========================================================================== */
+        function flipToStateB() {
+            document.getElementById('game-viewport').classList.add('state-b');
+            const cardContainer = document.getElementById('card-container');
+            
+            // 先繪製 SVG 後進行翻轉，確保渲染定位準確不穿孔
+            const q = questions[questionIndex];
+            
+            // 寫入觀念標題與 SVG 圖形
+            let visualTitle = "單位換算觀念";
+            if (q.levelType === 'MASS') visualTitle = "質量換算觀念 ⚖️";
+            else if (q.levelType === 'VOLUME') visualTitle = "容積換算觀念 🧪";
+            else if (q.levelType === 'LENGTH') visualTitle = "長度換算觀念 📏";
+            else if (q.levelType === 'TIME') visualTitle = "時間換算觀念 ⏱️";
+            
+            document.getElementById('hint-concept-title').textContent = visualTitle;
+            drawVisualConceptSVG(q);
+
+            // 寫入折疊公式的原始字串
+            document.getElementById('formula-content').innerHTML = q.formula;
+
+            // 觸發 Webkit 安全性翻轉
+            cardContainer.classList.add('flipped');
+            
+            // 翻轉完成後，將正面 display 改為 none，並使背面 transform 歸零，根除 iOS 的 3D Hit-test 位置偏差 Bug
+            setTimeout(() => {
+                if (cardContainer.classList.contains('flipped')) {
+                    document.getElementById('card-front').style.display = 'none';
+                    document.getElementById('card-back').style.display = 'flex';
+                }
+            }, 150);
+        }
+
+        /* ==========================================================================
+           12. 折疊算式遮罩控制
+           ========================================================================== */
+        function unlockFormula() {
+            playSynthSound('click');
+            document.getElementById('formula-mask').style.display = 'none';
+            document.getElementById('formula-content').style.display = 'block';
+        }
+
+        function resetFormulaPanel() {
+            document.getElementById('formula-mask').style.display = 'block';
+            document.getElementById('formula-content').style.display = 'none';
+        }
+
+        /* ==========================================================================
+           13. 進行至下一題 / 進入結算畫面
+           ========================================================================== */
+        function goToNextQuestion() {
+            playSynthSound('click');
+            if (questionIndex < 9) {
+                loadQuestion(questionIndex + 1);
+            } else {
+                showSettlement();
+            }
+        }
+
+        function showSettlement() {
+            stopQuestionTimer();
+            playSynthSound('win');
+
+            // 結算累計分數
+            totalScore = score;
+            document.getElementById('final-score').textContent = totalScore;
+            document.getElementById('final-combo-bonus').textContent = totalComboBonus;
+
+            // 完美成就判斷
+            const badgeContainer = document.getElementById('perfect-badge-container');
+            if (isPerfect) {
+                badgeContainer.style.display = 'flex';
+            } else {
+                badgeContainer.style.display = 'none';
+            }
+
+            // 更新並儲存最佳分數
+            saveHighScore(currentLevel, totalScore);
+            loadHighScoresToMenu();
+
+            // 顯示結算覆蓋面板
+            document.getElementById('settlement-overlay').style.display = 'flex';
+
+            // 微前端 telemetry 遙測封包廣播
+            if (window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'GAME_OVER',
+                    challengeId: 2,
+                    currentLevel: currentLevel,
+                    isPerfect: isPerfect,
+                    score: totalScore,
+                    comboBonus: totalComboBonus
+                }, '*');
+            }
+        }
+
+        function restartLevel() {
+            startGame(currentLevel);
+        }
+
+        function showMainMenu() {
+            playSynthSound('click');
+            stopQuestionTimer();
+            document.getElementById('settlement-overlay').style.display = 'none';
+            document.getElementById('main-menu').style.display = 'flex';
+            loadHighScoresToMenu();
+        }
+
+        function handleExit() {
+            playSynthSound('click');
+            stopQuestionTimer();
+            if (window.parent !== window) {
+                // Iframe 下回報微前端系統，主動退出單元
+                window.parent.postMessage({ type: 'EXIT_CHALLENGE', challengeId: 2 }, '*');
+            } else {
+                // Standalone 狀態下返回選單
+                showMainMenu();
+            }
+        }
+
+        /* ==========================================================================
+           14. 自訂非阻塞 HTML Macaron Toast 通知
+           ========================================================================== */
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+
+            container.appendChild(toast);
+            
+            // 強制回流以啟動 CSS 動態特效
+            toast.offsetHeight;
+            toast.classList.add('show');
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 2300);
+        }
+
+        /* ==========================================================================
+           15. 連點 5 次大標題觸發開發者彩蛋與除錯功能
+           ========================================================================== */
+        let devClicks = 0;
+        function handleDevClicks() {
+            devClicks++;
+            if (devClicks >= 5) {
+                document.getElementById('dev-panel').style.display = 'block';
+                showToast("開發者測試面板已解鎖！🔧", "info");
+                devClicks = 0;
+            }
+        }
+
+        function devInstantWin() {
+            score = 200;
+            totalComboBonus = 36;
+            isPerfect = true;
+            questionIndex = 9;
+            showSettlement();
+            document.getElementById('dev-panel').style.display = 'none';
+        }
+
+        function devSimulateTimeout() {
+            stopQuestionTimer();
+            handleTimeout();
+            document.getElementById('dev-panel').style.display = 'none';
+        }
+
+        function devSkipQuestion() {
+            stopQuestionTimer();
+            goToNextQuestion();
+            document.getElementById('dev-panel').style.display = 'none';
+        }
+
+        function devSwitchLevel4() {
+            document.getElementById('dev-panel').style.display = 'none';
+            startGame(4);
+        }
+    </script>
+</body>
+</html>
