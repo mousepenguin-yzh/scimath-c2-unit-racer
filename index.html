@@ -175,6 +175,7 @@
             color: #FFD700;
             margin-bottom: 24px;
             letter-spacing: 2px;
+            z-index: 2005;
         }
 
         .score-display-row {
@@ -182,6 +183,7 @@
             font-weight: 700;
             color: white;
             margin-bottom: 12px;
+            z-index: 2005;
         }
 
         .combo-bonus-row {
@@ -189,6 +191,7 @@
             font-weight: 700;
             color: #E6FFFA;
             margin-bottom: 30px;
+            z-index: 2005;
         }
 
         #perfect-badge-container {
@@ -197,6 +200,7 @@
             align-items: center;
             margin-bottom: 36px;
             animation: bounceIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 2005;
         }
 
         .gold-badge {
@@ -223,6 +227,7 @@
         .settlement-btn-row {
             display: flex;
             gap: 20px;
+            z-index: 2005;
         }
 
         .settlement-btn {
@@ -833,8 +838,9 @@
             </div>
         </div>
 
-        <!-- 結算畫面 -->
+        <!-- 結算畫面 (內嵌 Canvas 煙火效果) -->
         <div id="settlement-overlay">
+            <canvas id="fireworks-canvas" style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index: 1999;"></canvas>
             <div class="settlement-title">🏆 挑戰完成！🏎️</div>
             <div class="score-display-row">總得分：<span id="final-score" style="color: #FFE259;">0</span> 分</div>
             <div class="combo-bonus-row">連擊總獎勵：+<span id="final-combo-bonus">0</span> 分</div>
@@ -976,11 +982,11 @@
             { fromVal: 18, fromUnit: 'min', toVal: 0.3, toUnit: 'hr', levelType: 'TIME' },
             { fromVal: 24, fromUnit: 'min', toVal: 0.4, toUnit: 'hr', levelType: 'TIME' },
             { fromVal: 48, fromUnit: 'min', toVal: 0.8, toUnit: 'hr', levelType: 'TIME' },
-            { fromVal: 150, fromUnit: 'min', toVal: 2.5, toUnit: 'hr', levelType: 'TIME' }
+            { fromVal: 150, fontUnit: 'min', toVal: 2.5, toUnit: 'hr', levelType: 'TIME' }
         ];
 
         /* ==========================================================================
-           4. Web Audio API 音效引擎 (避免外部資源依賴，隨 combo 自動攀升頻率)
+           4. Web Audio API 音效引擎 (馬卡龍溫和音頻重製，徹底消除刺耳電子音)
            ========================================================================== */
         let audioCtx = null;
         function initAudio() {
@@ -998,38 +1004,67 @@
                     audioCtx.resume();
                 }
 
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                
                 const now = audioCtx.currentTime;
                 
                 if (type === 'click') {
+                    // Q 彈 Calimba Bubble Pop 聲
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(600, now);
-                    gain.gain.setValueAtTime(0.1, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.frequency.setValueAtTime(800, now);
+                    osc.frequency.exponentialRampToValueAtTime(400, now + 0.08);
+                    
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                    
                     osc.start(now);
-                    osc.stop(now + 0.1);
+                    osc.stop(now + 0.08);
                 } else if (type === 'correct') {
-                    osc.type = 'triangle';
-                    const baseFreq = 523.25; // C5
-                    const factor = 1 + (combo - 1) * 0.08;
-                    osc.frequency.setValueAtTime(baseFreq * factor, now);
-                    osc.frequency.exponentialRampToValueAtTime(baseFreq * factor * 1.5, now + 0.2);
-                    gain.gain.setValueAtTime(0.15, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-                    osc.start(now);
-                    osc.stop(now + 0.4);
+                    // 雙音階明亮 Harp Chime 水晶風鈴聲 (隨 Combo 遞增音高)
+                    const baseFreqs = [523.25, 659.25]; // C5, E5
+                    const factor = 1 + (combo - 1) * 0.05;
+
+                    baseFreqs.forEach((freq, index) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        
+                        osc.type = 'sine';
+                        const delay = index * 0.06;
+                        osc.frequency.setValueAtTime(freq * factor, now + delay);
+                        osc.frequency.exponentialRampToValueAtTime(freq * factor * 1.5, now + delay + 0.25);
+                        
+                        gain.gain.setValueAtTime(0, now);
+                        gain.gain.setValueAtTime(0.12, now + delay);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.3);
+                        
+                        osc.start(now + delay);
+                        osc.stop(now + delay + 0.3);
+                    });
                 } else if (type === 'incorrect') {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(220, now);
-                    osc.frequency.linearRampToValueAtTime(110, now + 0.35);
-                    gain.gain.setValueAtTime(0.15, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-                    osc.start(now);
-                    osc.stop(now + 0.4);
+                    // 低沉溫和的皮革雙鼓擊悶響 (保護錯折自尊)
+                    const beats = [0, 0.08];
+                    beats.forEach(delay => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(140, now + delay);
+                        osc.frequency.linearRampToValueAtTime(60, now + delay + 0.12);
+                        
+                        gain.gain.setValueAtTime(0, now);
+                        gain.gain.setValueAtTime(0.15, now + delay);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.12);
+                        
+                        osc.start(now + delay);
+                        osc.stop(now + delay + 0.12);
+                    });
                 } else if (type === 'win') {
                     const freqs = [523.25, 659.25, 783.99, 1046.5];
                     freqs.forEach((f, idx) => {
@@ -1038,11 +1073,11 @@
                         subOsc.connect(subGain);
                         subGain.connect(audioCtx.destination);
                         subOsc.type = 'sine';
-                        subOsc.frequency.setValueAtTime(f, now + idx * 0.1);
-                        subGain.gain.setValueAtTime(0.1, now + idx * 0.1);
-                        subGain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.3);
-                        subOsc.start(now + idx * 0.1);
-                        subOsc.stop(now + idx * 0.1 + 0.3);
+                        subOsc.frequency.setValueAtTime(f, now + idx * 0.08);
+                        subGain.gain.setValueAtTime(0.1, now + idx * 0.08);
+                        subGain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.08 + 0.3);
+                        subOsc.start(now + idx * 0.08);
+                        subOsc.stop(now + idx * 0.08 + 0.3);
                     });
                 }
             } catch (e) {
@@ -1103,7 +1138,7 @@
         });
 
         /* ==========================================================================
-           6. 題目與誘餌建構引擎 (釐清「大變小用乘，小變大用除」邏輯，完全排除 undefined)
+           6. 題目與解說建構引擎 (釐清「大變小用乘，小變大用除」邏輯，完全排除 undefined)
            ========================================================================== */
         function getFormulaExplanation(q) {
             const fVal = q.fromVal;
@@ -1162,17 +1197,15 @@
             
             const fmt = n => parseFloat(Number(n).toFixed(4));
             
-            // 根據不同類型動態生成干擾項
             if (unitF === 'hr' && unitT === 'min') {
                 set.add(fmt(from * 100)); // 經典錯誤：將小數直接寫成分鐘 (0.25hr -> 25min)
-                set.add(fmt(correct * 10)); // 位移錯誤
+                set.add(fmt(correct * 10)); 
                 set.add(fmt(correct / 10));
             } else if (unitF === 'min' && unitT === 'hr') {
                 set.add(fmt(from / 100)); // 15min -> 0.15hr
                 set.add(fmt(correct * 10));
                 set.add(fmt(correct / 10));
             } else {
-                // Metric 單位換算常見位移與乘除反轉錯誤
                 set.add(fmt(correct / 10));  
                 set.add(fmt(correct * 10));  
                 if (correct > from) {
@@ -1182,7 +1215,6 @@
                 }
             }
             
-            // 安全填充防護
             let multiplier = 2;
             while (set.size < 4) {
                 set.add(fmt(correct * multiplier));
@@ -1217,11 +1249,9 @@
 
             shuffleArray(rawPool);
             
-            // 挑出十題
             const selected = rawPool.slice(0, 10);
             
             questions = selected.map(q => {
-                // 必須在此時先建立標準化命名的 qObj，再傳入 buildOptions 與 getFormulaExplanation
                 const qObj = {
                     fromVal: q.fromVal,
                     fromUnit: q.fromUnit,
@@ -1252,40 +1282,30 @@
             questionIndex = index;
             attempts = 3;
             
-            // 恢復 State A 面板渲染狀態
             document.getElementById('game-viewport').classList.remove('state-b');
             const cardContainer = document.getElementById('card-container');
             cardContainer.classList.remove('flipped');
             
-            // 絕對隔離 Webkit 穿透
             document.getElementById('card-front').style.display = 'flex';
             document.getElementById('card-back').style.display = 'none';
 
             const q = questions[index];
             
-            // 寫入題目 (完全根除單位消失的 bug)
             document.getElementById('q-val-from').textContent = q.fromVal;
             document.getElementById('q-unit-from').textContent = q.fromUnit;
             document.getElementById('q-unit-to').textContent = q.toUnit;
 
-            // 寫入選項
             resetOptionButtons();
             for (let i = 0; i < 4; i++) {
                 document.getElementById(`opt-${i}`).textContent = q.options[i];
             }
 
-            // 更新頂部數據
             document.getElementById('question-progress').textContent = `${index + 1} / 10`;
             document.getElementById('score-badge').textContent = `得分: ${score}`;
             document.getElementById('combo-badge').textContent = `連擊: ${combo}`;
 
-            // 更新賽車跑道位置
             updateRacingCarPosition();
-
-            // 重置折疊式公式狀態
             resetFormulaPanel();
-
-            // 啟動高精度定時器
             startQuestionTimer();
         }
 
@@ -1416,7 +1436,7 @@
         }
 
         /* ==========================================================================
-           10. SVG 動態生成引擎 (徹底防漏，解決某數字+undefined)
+           10. SVG 動態生成引擎 (高精度刻度對齊，徹底解決「圖跟說明不一樣」)
            ========================================================================== */
         function drawVisualConceptSVG(q) {
             const container = document.getElementById('hint-svg-placeholder');
@@ -1431,7 +1451,6 @@
             let svg = '';
 
             if (lvlType === 'MASS') {
-                // LV.1 等臂天平法碼平衡圖
                 svg = `
                 <svg width="300" height="200" viewBox="0 0 300 200" style="display:block; margin:auto;">
                     <rect x="145" y="40" width="10" height="130" fill="#718096" rx="3"/>
@@ -1459,32 +1478,73 @@
                 </svg>
                 `;
             } else if (lvlType === 'VOLUME') {
-                // LV.2 量筒比例圖
+                // 水面與刻度對稱重製演算法
                 let targetML = (toU === 'mL') ? toV : fromV;
-                let maxML = 2000;
-                if (targetML > 2000) maxML = 5000;
-                let fillRatio = Math.min(Math.max(targetML / maxML, 0.15), 0.85); 
+                
+                // 動態判斷量筒容量區間，保證最高刻度高於或等於目標
+                let maxML = 1000;
+                if (targetML > 1000) maxML = 3000;
+                
+                // 水面總高度為 110px 區間 (量筒底部為 y=160, 頂部為 y=50)
+                let fillRatio = targetML / maxML;
                 let fillH = fillRatio * 110;
+                let waterTopY = 160 - fillH;
+
+                // 生成純數學等比刻度線與對齊標籤
+                let ticksHTML = '';
+                if (maxML === 1000) {
+                    ticksHTML = `
+                        <!-- 1000 mL -->
+                        <line x1="110" y1="50" x2="125" y2="50" stroke="#4A5568" stroke-width="2"/>
+                        <text x="100" y="54" font-family="sans-serif" font-size="10" fill="#718096" text-anchor="end">1000 mL</text>
+                        
+                        <!-- 750 mL -->
+                        <line x1="110" y1="77.5" x2="120" y2="77.5" stroke="#4A5568" stroke-width="2"/>
+                        <text x="100" y="81.5" font-family="sans-serif" font-size="10" fill="#718096" text-anchor="end">750 mL</text>
+
+                        <!-- 500 mL -->
+                        <line x1="110" y1="105" x2="125" y2="105" stroke="#4A5568" stroke-width="2"/>
+                        <text x="100" y="109" font-family="sans-serif" font-size="10" fill="#718096" text-anchor="end">500 mL</text>
+
+                        <!-- 250 mL -->
+                        <line x1="110" y1="132.5" x2="120" y2="132.5" stroke="#4A5568" stroke-width="2"/>
+                        <text x="100" y="136.5" font-family="sans-serif" font-size="10" fill="#718096" text-anchor="end">250 mL</text>
+                    `;
+                } else {
+                    // 3000 mL 區間刻度
+                    ticksHTML = `
+                        <!-- 3000 mL -->
+                        <line x1="110" y1="50" x2="125" y2="50" stroke="#4A5568" stroke-width="2"/>
+                        <text x="100" y="54" font-family="sans-serif" font-size="10" fill="#718096" text-anchor="end">3000 mL</text>
+                        
+                        <!-- 2000 mL -->
+                        <line x1="110" y1="86.7" x2="125" y2="86.7" stroke="#4A5568" stroke-width="2"/>
+                        <text x="100" y="90.7" font-family="sans-serif" font-size="10" fill="#718096" text-anchor="end">2000 mL</text>
+
+                        <!-- 1000 mL -->
+                        <line x1="110" y1="123.3" x2="125" y2="123.3" stroke="#4A5568" stroke-width="2"/>
+                        <text x="100" y="127.3" font-family="sans-serif" font-size="10" fill="#718096" text-anchor="end">1000 mL</text>
+                    `;
+                }
                 
                 svg = `
                 <svg width="300" height="200" viewBox="0 0 300 200" style="display:block; margin:auto;">
+                    <!-- 量筒外壁 -->
                     <rect x="110" y="40" width="80" height="130" rx="10" fill="#FFFDF9" stroke="#718096" stroke-width="4" />
                     <ellipse cx="150" cy="170" rx="55" ry="10" fill="#E2E8F0" stroke="#4A5568" stroke-width="4" />
                     
-                    <rect x="114" y="${168 - fillH}" width="72" height="${fillH}" rx="4" fill="rgba(144, 205, 244, 0.85)" />
+                    <!-- 水位著色 (完全精準貼合對應刻度線，不多不少) -->
+                    <rect x="114" y="${waterTopY}" width="72" height="${fillH}" rx="4" fill="rgba(144, 205, 244, 0.85)" />
                     
-                    <line x1="110" y1="50" x2="125" y2="50" stroke="#4A5568" stroke-width="2"/>
-                    <line x1="110" y1="80" x2="120" y2="80" stroke="#4A5568" stroke-width="2"/>
-                    <line x1="110" y1="110" x2="125" y2="110" stroke="#4A5568" stroke-width="2"/>
-                    <line x1="110" y1="140" x2="120" y2="140" stroke="#4A5568" stroke-width="2"/>
+                    <!-- 動態渲染對稱刻度 -->
+                    ${ticksHTML}
                     
-                    <text x="100" y="55" font-family="sans-serif" font-size="10" fill="#718096" text-anchor="end">${maxML} mL</text>
-                    <text x="100" y="115" font-family="sans-serif" font-size="10" fill="#718096" text-anchor="end">${maxML / 2} mL</text>
+                    <!-- 內部原始標籤 -->
+                    <text x="150" y="${Math.min(waterTopY + fillH/2 + 4, 158)}" font-family="'Zen Maru Gothic', sans-serif" font-size="11" font-weight="bold" fill="#2B6CB0" text-anchor="middle">${fromV} ${fromU}</text>
                     
-                    <text x="150" y="${174 - fillH/2}" font-family="'Zen Maru Gothic', sans-serif" font-size="11" font-weight="bold" fill="#2B6CB0" text-anchor="middle">${fromV} ${fromU}</text>
-                    
-                    <path d="M 205 100 L 220 100" stroke="#4A5568" stroke-width="2" stroke-dasharray="2" marker-end="url(#arrow-vol)" />
-                    <text x="255" y="104" font-family="'Zen Maru Gothic', sans-serif" font-size="12" font-weight="bold" fill="#2F855A" text-anchor="middle">${toV} ${toU}</text>
+                    <!-- 指引線段 -->
+                    <path d="M 205 ${waterTopY + 5} L 225 ${waterTopY + 5}" stroke="#4A5568" stroke-width="2" stroke-dasharray="2" marker-end="url(#arrow-vol)" />
+                    <text x="260" y="${waterTopY + 9}" font-family="'Zen Maru Gothic', sans-serif" font-size="12" font-weight="bold" fill="#2F855A" text-anchor="middle">${toV} ${toU}</text>
                     
                     <defs>
                         <marker id="arrow-vol" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -1494,7 +1554,6 @@
                 </svg>
                 `;
             } else if (lvlType === 'LENGTH') {
-                // LV.3 長度級聯關係示意圖
                 const highlightKm = (fromU === 'km' || toU === 'km') ? '#ECC94B' : '#CBD5E0';
                 const highlightM = (fromU === 'm' || toU === 'm') ? '#4299E1' : '#CBD5E0';
                 const highlightCm = (fromU === 'cm' || toU === 'cm') ? '#9F7AEA' : '#CBD5E0';
@@ -1547,7 +1606,6 @@
                 </svg>
                 `;
             } else if (lvlType === 'TIME') {
-                // LV.4 鐘面比例圖 (1.5hr = 90min)
                 let hrVal = (fromU === 'hr') ? fromV : toV;
                 const displayRatio = hrVal % 1.0 === 0 ? 1.0 : (hrVal % 1.0);
                 const angle = displayRatio * 2 * Math.PI;
@@ -1655,7 +1713,7 @@
         }
 
         /* ==========================================================================
-           13. 進行至下一題 / 進入結算畫面
+           13. 進行至下一題 / 進入結算畫面 (內含 Canvas 慶祝煙火動畫)
            ========================================================================== */
         function goToNextQuestion() {
             playSynthSound('click');
@@ -1685,6 +1743,9 @@
             loadHighScoresToMenu();
 
             document.getElementById('settlement-overlay').style.display = 'flex';
+            
+            // 啟動炫彩煙火特效
+            startFireworksEffect();
 
             if (window.parent !== window) {
                 window.parent.postMessage({
@@ -1699,12 +1760,14 @@
         }
 
         function restartLevel() {
+            stopFireworksEffect();
             startGame(currentLevel);
         }
 
         function showMainMenu() {
             playSynthSound('click');
             stopQuestionTimer();
+            stopFireworksEffect();
             document.getElementById('settlement-overlay').style.display = 'none';
             document.getElementById('main-menu').style.display = 'flex';
             loadHighScoresToMenu();
@@ -1713,6 +1776,7 @@
         function handleExit() {
             playSynthSound('click');
             stopQuestionTimer();
+            stopFireworksEffect();
             if (window.parent !== window) {
                 window.parent.postMessage({ type: 'EXIT_CHALLENGE', challengeId: 2 }, '*');
             } else {
@@ -1721,7 +1785,113 @@
         }
 
         /* ==========================================================================
-           14. 自訂非阻塞 HTML Macaron Toast 通知
+           14. Canvas 慶賀煙火粒子物理引擎
+           ========================================================================== */
+        let fireworksActive = false;
+        let fireworksId = null;
+
+        function startFireworksEffect() {
+            const canvas = document.getElementById('fireworks-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            // 對齊視窗邏輯解析度 (1280x720)
+            canvas.width = 1280;
+            canvas.height = 720;
+            
+            const particles = [];
+            const colors = ['#FF8A65', '#90CDF4', '#9AE6B4', '#FBD38D', '#D6BCFA', '#FFB7B2', '#FFDAC1', '#E2F0CB', '#B5EAD7', '#C7CEEA'];
+            
+            class Particle {
+                constructor(x, y, color) {
+                    this.x = x;
+                    this.y = y;
+                    this.color = color;
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 5 + 3;
+                    this.vx = Math.cos(angle) * speed;
+                    this.vy = Math.sin(angle) * speed;
+                    this.alpha = 1;
+                    this.decay = Math.random() * 0.012 + 0.012;
+                    this.radius = Math.random() * 3 + 1.5;
+                    this.gravity = 0.07;
+                }
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    this.vy += this.gravity;
+                    this.alpha -= this.decay;
+                }
+                draw() {
+                    ctx.save();
+                    ctx.globalAlpha = this.alpha;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.shadowBlur = 6;
+                    ctx.shadowColor = this.color;
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+            
+            function spawnExplosion(x, y) {
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const count = 45;
+                for (let i = 0; i < count; i++) {
+                    particles.push(new Particle(x, y, color));
+                }
+            }
+            
+            // 首波高空齊放
+            spawnExplosion(340, 220);
+            spawnExplosion(640, 160);
+            spawnExplosion(940, 220);
+            
+            let spawnTimer = 0;
+            fireworksActive = true;
+            
+            function loop() {
+                if (!fireworksActive) return;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                spawnTimer++;
+                if (spawnTimer % 22 === 0) {
+                    const rx = Math.random() * 800 + 240; 
+                    const ry = Math.random() * 260 + 100;
+                    spawnExplosion(rx, ry);
+                }
+                
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    const p = particles[i];
+                    p.update();
+                    if (p.alpha <= 0) {
+                        particles.splice(i, 1);
+                    } else {
+                        p.draw();
+                    }
+                }
+                
+                fireworksId = requestAnimationFrame(loop);
+            }
+            loop();
+        }
+
+        function stopFireworksEffect() {
+            fireworksActive = false;
+            if (fireworksId) {
+                cancelAnimationFrame(fireworksId);
+                fireworksId = null;
+            }
+            const canvas = document.getElementById('fireworks-canvas');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        /* ==========================================================================
+           15. 自訂非阻塞 HTML Macaron Toast 通知
            ========================================================================== */
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
@@ -1745,7 +1915,7 @@
         }
 
         /* ==========================================================================
-           15. 連點 5 次大標題觸發開發者彩蛋與除錯功能
+           16. 連點 5 次大標題觸發開發者彩蛋與除錯功能
            ========================================================================== */
         let devClicks = 0;
         function handleDevClicks() {
