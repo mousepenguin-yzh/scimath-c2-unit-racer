@@ -734,10 +734,10 @@
             <div class="game-card" id="card-front">
                 <div class="formula-display">
                     <span id="q-val-from">0</span> 
-                    <span id="q-unit-from">--</span> 
+                    <span id="q-unit-from" style="color: #4A90E2; margin: 0 4px;">--</span> 
                     <span>=</span> 
-                    <span class="formula-target">[ ? ]</span> 
-                    <span id="q-unit-to">--</span>
+                    <span class="formula-target" style="margin: 0 4px;">[ ? ]</span> 
+                    <span id="q-unit-to" style="color: #4A90E2;">--</span>
                 </div>
             </div>
             
@@ -749,8 +749,8 @@
                 <div class="card-back-right">
                     <div>
                         <div id="hint-concept-title" class="hint-title">單位配對觀念 💡</div>
-                        <p style="font-size: 15px; color: #4A5568; margin-top: 4px; line-height: 1.4; text-align: center;">
-                            大單位換算至小單位時數值相乘；小變大時數值相除。
+                        <p id="hint-concept-subtitle" style="font-size: 15px; color: #4A5568; margin-top: 4px; line-height: 1.4; text-align: center;">
+                            大單位變小單位用乘法，小單位變大單位用除法。
                         </p>
                     </div>
                     
@@ -925,7 +925,7 @@
         handleResize();
 
         /* ==========================================================================
-           3. 嚴謹對稱式出題資料庫 (無小數漂移、設計 pedagogical 誘餌)
+           3. 嚴謹對稱式出題資料庫 (無小數漂移、使用對稱命名與 pedagogical 誘餌)
            ========================================================================== */
         const massData = [
             { fromVal: 1.5, fromUnit: 'kg', toVal: 1500, toUnit: 'g', levelType: 'MASS' },
@@ -966,7 +966,6 @@
             { fromVal: 1200, fromUnit: 'mm', toVal: 1.2, toUnit: 'm', levelType: 'LENGTH' }
         ];
 
-        // 嚴謹設計 nice fractions (去除除不盡的小數點)
         const timeData = [
             { fromVal: 0.25, fromUnit: 'hr', toVal: 15, toUnit: 'min', levelType: 'TIME' },
             { fromVal: 0.5, fromUnit: 'hr', toVal: 30, toUnit: 'min', levelType: 'TIME' },
@@ -995,7 +994,6 @@
                 initAudio();
                 if (!audioCtx) return;
                 
-                // 若音訊處於暫停狀態，嘗試重啟
                 if (audioCtx.state === 'suspended') {
                     audioCtx.resume();
                 }
@@ -1016,7 +1014,6 @@
                     osc.stop(now + 0.1);
                 } else if (type === 'correct') {
                     osc.type = 'triangle';
-                    // 隨 combo 遞增提高基音頻率
                     const baseFreq = 523.25; // C5
                     const factor = 1 + (combo - 1) * 0.08;
                     osc.frequency.setValueAtTime(baseFreq * factor, now);
@@ -1034,7 +1031,6 @@
                     osc.start(now);
                     osc.stop(now + 0.4);
                 } else if (type === 'win') {
-                    // 勝利琶音
                     const freqs = [523.25, 659.25, 783.99, 1046.5];
                     freqs.forEach((f, idx) => {
                         const subOsc = audioCtx.createOscillator();
@@ -1107,59 +1103,59 @@
         });
 
         /* ==========================================================================
-           6. 題目與誘餌建構引擎 (解決高精度配對、避免產生浮點數冗餘)
+           6. 題目與誘餌建構引擎 (釐清「大變小用乘，小變大用除」邏輯，完全排除 undefined)
            ========================================================================== */
         function getFormulaExplanation(q) {
             const fVal = q.fromVal;
-            const fUnit = q.unitFrom;
+            const fUnit = q.fromUnit;
             const tVal = q.toVal;
-            const tUnit = q.unitTo;
+            const tUnit = q.toUnit;
             
             if (q.levelType === 'MASS') {
                 if (fUnit === 'kg' && tUnit === 'g') {
-                    return `因為 1 kg = 1000 g (大變小用乘法)<br>算式：<strong>${fVal} × 1000 = ${tVal} g</strong>`;
+                    return `因為 1 kg = 1000 g <strong>(大單位變小單位用乘法：數字放大)</strong><br>算式：<strong>${fVal} × 1000 = ${tVal} g</strong>`;
                 } else {
-                    return `因為 1 kg = 1000 g (小變大用除法)<br>算式：<strong>${fVal} ÷ 1000 = ${tVal} kg</strong>`;
+                    return `因為 1 kg = 1000 g <strong>(小單位變大單位用除法：數字縮小)</strong><br>算式：<strong>${fVal} ÷ 1000 = ${tVal} kg</strong>`;
                 }
             } else if (q.levelType === 'VOLUME') {
                 if (fUnit === 'L' && tUnit === 'mL') {
-                    return `因為 1 L = 1000 mL (大變小用乘法)<br>算式：<strong>${fVal} × 1000 = ${tVal} mL</strong>`;
+                    return `因為 1 L = 1000 mL <strong>(大單位變小單位用乘法：數字放大)</strong><br>算式：<strong>${fVal} × 1000 = ${tVal} mL</strong>`;
                 } else {
-                    return `因為 1 L = 1000 mL (小變大用除法)<br>算式：<strong>${fVal} ÷ 1000 = ${tVal} L</strong>`;
+                    return `因為 1 L = 1000 mL <strong>(小單位變大單位用除法：數字縮小)</strong><br>算式：<strong>${fVal} ÷ 1000 = ${tVal} L</strong>`;
                 }
             } else if (q.levelType === 'LENGTH') {
                 if (fUnit === 'km' && tUnit === 'm') {
-                    return `因為 1 km = 1000 m (大變小用乘法)<br>算式：<strong>${fVal} × 1000 = ${tVal} m</strong>`;
+                    return `因為 1 km = 1000 m <strong>(大單位變小單位用乘法：數字放大)</strong><br>算式：<strong>${fVal} × 1000 = ${tVal} m</strong>`;
                 } else if (fUnit === 'm' && tUnit === 'cm') {
-                    return `因為 1 m = 100 cm (大變小用乘法)<br>算式：<strong>${fVal} × 100 = ${tVal} cm</strong>`;
+                    return `因為 1 m = 100 cm <strong>(大單位變小單位用乘法：數字放大)</strong><br>算式：<strong>${fVal} × 100 = ${tVal} cm</strong>`;
                 } else if (fUnit === 'cm' && tUnit === 'mm') {
-                    return `因為 1 cm = 10 mm (大變小用乘法)<br>算式：<strong>${fVal} × 10 = ${tVal} mm</strong>`;
+                    return `因為 1 cm = 10 mm <strong>(大單位變小單位用乘法：數字放大)</strong><br>算式：<strong>${fVal} × 10 = ${tVal} mm</strong>`;
                 } else if (fUnit === 'm' && tUnit === 'mm') {
-                    return `因為 1 m = 1000 mm (大變小用乘法)<br>算式：<strong>${fVal} × 1000 = ${tVal} mm</strong>`;
+                    return `因為 1 m = 1000 mm <strong>(大單位變小單位用乘法：數字放大)</strong><br>算式：<strong>${fVal} × 1000 = ${tVal} mm</strong>`;
                 } else if (fUnit === 'mm' && tUnit === 'cm') {
-                    return `因為 1 cm = 10 mm (小變大用除法)<br>算式：<strong>${fVal} ÷ 10 = ${tVal} cm</strong>`;
+                    return `因為 1 cm = 10 mm <strong>(小單位變大單位用除法：數字縮小)</strong><br>算式：<strong>${fVal} ÷ 10 = ${tVal} cm</strong>`;
                 } else if (fUnit === 'cm' && tUnit === 'm') {
-                    return `因為 1 m = 100 cm (小變大用除法)<br>算式：<strong>${fVal} ÷ 100 = ${tVal} m</strong>`;
+                    return `因為 1 m = 100 cm <strong>(小單位變大單位用除法：數字縮小)</strong><br>算式：<strong>${fVal} ÷ 100 = ${tVal} m</strong>`;
                 } else if (fUnit === 'm' && tUnit === 'km') {
-                    return `因為 1 km = 1000 m (小變大用除法)<br>算式：<strong>${fVal} ÷ 1000 = ${tVal} km</strong>`;
+                    return `因為 1 km = 1000 m <strong>(小單位變大單位用除法：數字縮小)</strong><br>算式：<strong>${fVal} ÷ 1000 = ${tVal} km</strong>`;
                 } else if (fUnit === 'mm' && tUnit === 'm') {
-                    return `因為 1 m = 1000 mm (小變大用除法)<br>算式：<strong>${fVal} ÷ 1000 = ${tVal} m</strong>`;
+                    return `因為 1 m = 1000 mm <strong>(小單位變大單位用除法：數字縮小)</strong><br>算式：<strong>${fVal} ÷ 1000 = ${tVal} m</strong>`;
                 }
             } else if (q.levelType === 'TIME') {
                 if (fUnit === 'hr' && tUnit === 'min') {
-                    return `因為 1 hr = 60 min (大變小用乘法)<br>算式：<strong>${fVal} × 60 = ${tVal} min</strong>`;
+                    return `因為 1 小時 (hr) = 60 分鐘 (min) <strong>(大單位變小單位用乘法：數字放大)</strong><br>算式：<strong>${fVal} × 60 = ${tVal} min</strong>`;
                 } else {
-                    return `因為 1 hr = 60 min (小變大用除法)<br>算式：<strong>${fVal} ÷ 60 = ${tVal} hr</strong>`;
+                    return `因為 1 小時 (hr) = 60 分鐘 (min) <strong>(小單位變大單位用除法：數字縮小)</strong><br>算式：<strong>${fVal} ÷ 60 = ${tVal} hr</strong>`;
                 }
             }
-            return `${fVal} ${fUnit} = ${tVal} ${tUnit}`;
+            return `換算關係：${fVal} ${fUnit} = ${tVal} ${tUnit}`;
         }
 
         function buildOptions(q) {
             const correct = q.toVal;
             const from = q.fromVal;
-            const unitF = q.unitFrom;
-            const unitT = q.unitTo;
+            const unitF = q.fromUnit;
+            const unitT = q.toUnit;
             
             const set = new Set();
             set.add(correct);
@@ -1168,25 +1164,25 @@
             
             // 根據不同類型動態生成干擾項
             if (unitF === 'hr' && unitT === 'min') {
-                set.add(fmt(from * 100)); // 小數直接當成分鐘錯誤 (如 0.25hr -> 25min)
+                set.add(fmt(from * 100)); // 經典錯誤：將小數直接寫成分鐘 (0.25hr -> 25min)
                 set.add(fmt(correct * 10)); // 位移錯誤
                 set.add(fmt(correct / 10));
             } else if (unitF === 'min' && unitT === 'hr') {
-                set.add(fmt(from / 100)); // 例如 15min -> 0.15hr
+                set.add(fmt(from / 100)); // 15min -> 0.15hr
                 set.add(fmt(correct * 10));
                 set.add(fmt(correct / 10));
             } else {
-                // Metric 單位換算常見位移錯誤
+                // Metric 單位換算常見位移與乘除反轉錯誤
                 set.add(fmt(correct / 10));  
                 set.add(fmt(correct * 10));  
                 if (correct > from) {
-                    set.add(fmt(from / (correct / from))); // 乘除反轉錯誤
+                    set.add(fmt(from / (correct / from))); 
                 } else {
-                    set.add(fmt(from * (from / correct))); // 乘除反轉錯誤
+                    set.add(fmt(from * (from / correct))); 
                 }
             }
             
-            // 安全防護：若元素不足 4 個則亂數填充
+            // 安全填充防護
             let multiplier = 2;
             while (set.size < 4) {
                 set.add(fmt(correct * multiplier));
@@ -1221,20 +1217,28 @@
 
             shuffleArray(rawPool);
             
-            // 取前 10 題
+            // 挑出十題
             const selected = rawPool.slice(0, 10);
             
             questions = selected.map(q => {
-                const opt = buildOptions(q);
-                return {
+                // 必須在此時先建立標準化命名的 qObj，再傳入 buildOptions 與 getFormulaExplanation
+                const qObj = {
                     fromVal: q.fromVal,
-                    unitFrom: q.unitFrom,
+                    fromUnit: q.fromUnit,
                     toVal: q.toVal,
-                    unitTo: q.toUnit,
-                    levelType: q.levelType,
+                    toUnit: q.toUnit,
+                    levelType: q.levelType
+                };
+                const opt = buildOptions(qObj);
+                return {
+                    fromVal: qObj.fromVal,
+                    fromUnit: qObj.fromUnit,
+                    toVal: qObj.toVal,
+                    toUnit: qObj.toUnit,
+                    levelType: qObj.levelType,
                     options: opt,
-                    correctIndex: opt.indexOf(q.toVal),
-                    formula: getFormulaExplanation(q)
+                    correctIndex: opt.indexOf(qObj.toVal),
+                    formula: getFormulaExplanation(qObj)
                 };
             });
 
@@ -1259,10 +1263,10 @@
 
             const q = questions[index];
             
-            // 寫入題目
+            // 寫入題目 (完全根除單位消失的 bug)
             document.getElementById('q-val-from').textContent = q.fromVal;
-            document.getElementById('q-unit-from').textContent = q.unitFrom;
-            document.getElementById('q-unit-to').textContent = q.unitTo;
+            document.getElementById('q-unit-from').textContent = q.fromUnit;
+            document.getElementById('q-unit-to').textContent = q.toUnit;
 
             // 寫入選項
             resetOptionButtons();
@@ -1308,7 +1312,7 @@
         }
 
         /* ==========================================================================
-           8. 高精度 requestAnimationFrame 定時器 (完全防止背景漂移與失能)
+           8. 高精度 requestAnimationFrame 定時器
            ========================================================================== */
         function startQuestionTimer() {
             stopQuestionTimer();
@@ -1357,14 +1361,13 @@
         }
 
         /* ==========================================================================
-           9. 答題點擊判定機制 (三段式階梯計分 + 連擊 Combo 機制)
+           9. 答題點擊判定機制 (三段式階梯計分)
            ========================================================================== */
         function selectOption(index) {
             stopQuestionTimer();
             const q = questions[questionIndex];
             
             if (index === q.correctIndex) {
-                // 答對
                 let ptsEarned = 10;
                 if (attempts === 3) ptsEarned = 20;
                 else if (attempts === 2) ptsEarned = 15;
@@ -1376,7 +1379,7 @@
                         comboBonus = combo * 2;
                     }
                 } else {
-                    combo = 0; // 非首選正確直接中斷連擊
+                    combo = 0; 
                 }
 
                 score += (ptsEarned + comboBonus);
@@ -1392,11 +1395,10 @@
 
                 flipToStateB();
             } else {
-                // 答錯
                 playSynthSound('incorrect');
                 attempts--;
                 isPerfect = false;
-                combo = 0; // 重置連擊
+                combo = 0; 
 
                 if (attempts > 0) {
                     showToast(`配對錯誤！剩餘 ${attempts} 次機會 ⚠️`, "error");
@@ -1405,7 +1407,6 @@
                         btn.disabled = true;
                         btn.classList.add('disabled');
                     }
-                    // 重啟計時
                     startQuestionTimer();
                 } else {
                     showToast("機會用完了，來看看解法吧！", "error");
@@ -1415,7 +1416,7 @@
         }
 
         /* ==========================================================================
-           10. Step 4 觀念救援 SVG 動態生成引擎 (質量、體積、長度、時間)
+           10. SVG 動態生成引擎 (徹底防漏，解決某數字+undefined)
            ========================================================================== */
         function drawVisualConceptSVG(q) {
             const container = document.getElementById('hint-svg-placeholder');
@@ -1424,8 +1425,8 @@
             const lvlType = q.levelType;
             const fromV = q.fromVal;
             const toV = q.toVal;
-            const fromU = q.unitFrom;
-            const toU = q.unitTo;
+            const fromU = q.fromUnit;
+            const toU = q.toUnit;
 
             let svg = '';
 
@@ -1433,54 +1434,45 @@
                 // LV.1 等臂天平法碼平衡圖
                 svg = `
                 <svg width="300" height="200" viewBox="0 0 300 200" style="display:block; margin:auto;">
-                    <!-- 支架立柱 -->
                     <rect x="145" y="40" width="10" height="130" fill="#718096" rx="3"/>
                     <rect x="110" y="170" width="80" height="15" fill="#4A5568" rx="4"/>
                     <polygon points="150,40 138,60 162,60" fill="#2D3748" />
                     
-                    <!-- 天平橫樑 (水平線，代表完美等值配對) -->
                     <line x1="60" y1="60" x2="240" y2="60" stroke="#4A5568" stroke-width="6" stroke-linecap="round"/>
                     
                     <!-- 左吊盤 -->
                     <line x1="60" y1="60" x2="40" y2="130" stroke="#A0AEC0" stroke-width="2"/>
                     <line x1="60" y1="60" x2="80" y2="130" stroke="#A0AEC0" stroke-width="2"/>
                     <line x1="30" y1="130" x2="90" y2="130" stroke="#4A5568" stroke-width="4"/>
-                    <!-- 左法碼 -->
-                    <rect x="42" y="100" width="36" height="30" fill="#FEB2B2" rx="6" stroke="#FC8181" stroke-width="2" />
+                    <rect x="36" y="100" width="48" height="30" fill="#FEB2B2" rx="6" stroke="#FC8181" stroke-width="2" />
                     <text x="60" y="118" font-family="'Zen Maru Gothic', sans-serif" font-size="11" font-weight="bold" fill="#2D3748" text-anchor="middle">${fromV} ${fromU}</text>
                     
                     <!-- 右吊盤 -->
                     <line x1="240" y1="60" x2="220" y2="130" stroke="#A0AEC0" stroke-width="2"/>
                     <line x1="240" y1="60" x2="260" y2="130" stroke="#A0AEC0" stroke-width="2"/>
                     <line x1="210" y1="130" x2="270" y2="130" stroke="#4A5568" stroke-width="4"/>
-                    <!-- 右法碼 -->
-                    <rect x="222" y="100" width="36" height="30" fill="#9AE6B4" rx="6" stroke="#68D391" stroke-width="2" />
+                    <rect x="216" y="100" width="48" height="30" fill="#9AE6B4" rx="6" stroke="#68D391" stroke-width="2" />
                     <text x="240" y="118" font-family="'Zen Maru Gothic', sans-serif" font-size="11" font-weight="bold" fill="#2D3748" text-anchor="middle">${toV} ${toU}</text>
                     
-                    <!-- 核心等號 -->
                     <text x="150" y="120" font-family="sans-serif" font-size="28" font-weight="bold" fill="#4A5568" text-anchor="middle">=</text>
                     <text x="150" y="25" font-family="'Zen Maru Gothic', sans-serif" font-size="12" font-weight="bold" fill="#718096" text-anchor="middle">等值天平：兩端質量完全相等</text>
                 </svg>
                 `;
             } else if (lvlType === 'VOLUME') {
-                // LV.2 量筒液位著色比例圖
+                // LV.2 量筒比例圖
                 let targetML = (toU === 'mL') ? toV : fromV;
                 let maxML = 2000;
                 if (targetML > 2000) maxML = 5000;
-                // 防止溢出與過小
                 let fillRatio = Math.min(Math.max(targetML / maxML, 0.15), 0.85); 
                 let fillH = fillRatio * 110;
                 
                 svg = `
                 <svg width="300" height="200" viewBox="0 0 300 200" style="display:block; margin:auto;">
-                    <!-- 量筒外壁 -->
                     <rect x="110" y="40" width="80" height="130" rx="10" fill="#FFFDF9" stroke="#718096" stroke-width="4" />
                     <ellipse cx="150" cy="170" rx="55" ry="10" fill="#E2E8F0" stroke="#4A5568" stroke-width="4" />
                     
-                    <!-- 水位著色 (馬卡龍藍) -->
                     <rect x="114" y="${168 - fillH}" width="72" height="${fillH}" rx="4" fill="rgba(144, 205, 244, 0.85)" />
                     
-                    <!-- 刻度指標 -->
                     <line x1="110" y1="50" x2="125" y2="50" stroke="#4A5568" stroke-width="2"/>
                     <line x1="110" y1="80" x2="120" y2="80" stroke="#4A5568" stroke-width="2"/>
                     <line x1="110" y1="110" x2="125" y2="110" stroke="#4A5568" stroke-width="2"/>
@@ -1489,12 +1481,10 @@
                     <text x="100" y="55" font-family="sans-serif" font-size="10" fill="#718096" text-anchor="end">${maxML} mL</text>
                     <text x="100" y="115" font-family="sans-serif" font-size="10" fill="#718096" text-anchor="end">${maxML / 2} mL</text>
                     
-                    <!-- 量筒內容量數值標籤 -->
                     <text x="150" y="${174 - fillH/2}" font-family="'Zen Maru Gothic', sans-serif" font-size="11" font-weight="bold" fill="#2B6CB0" text-anchor="middle">${fromV} ${fromU}</text>
                     
-                    <!-- 轉換指引 -->
-                    <path d="M 205 100 L 225 100" stroke="#4A5568" stroke-width="2" stroke-dasharray="2" marker-end="url(#arrow-vol)" />
-                    <text x="260" y="105" font-family="'Zen Maru Gothic', sans-serif" font-size="13" font-weight="bold" fill="#2F855A" text-anchor="middle">${toV} ${toU}</text>
+                    <path d="M 205 100 L 220 100" stroke="#4A5568" stroke-width="2" stroke-dasharray="2" marker-end="url(#arrow-vol)" />
+                    <text x="255" y="104" font-family="'Zen Maru Gothic', sans-serif" font-size="12" font-weight="bold" fill="#2F855A" text-anchor="middle">${toV} ${toU}</text>
                     
                     <defs>
                         <marker id="arrow-vol" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -1504,7 +1494,7 @@
                 </svg>
                 `;
             } else if (lvlType === 'LENGTH') {
-                // LV.3 長度換算跳板階梯圖
+                // LV.3 長度級聯關係示意圖
                 const highlightKm = (fromU === 'km' || toU === 'km') ? '#ECC94B' : '#CBD5E0';
                 const highlightM = (fromU === 'm' || toU === 'm') ? '#4299E1' : '#CBD5E0';
                 const highlightCm = (fromU === 'cm' || toU === 'cm') ? '#9F7AEA' : '#CBD5E0';
@@ -1512,7 +1502,6 @@
 
                 svg = `
                 <svg width="300" height="200" viewBox="0 0 300 200" style="display:block; margin:auto;">
-                    <!-- 單位節點 -->
                     <circle cx="45" cy="110" r="22" fill="${highlightKm}" stroke="#4A5568" stroke-width="3"/>
                     <text x="45" y="115" font-family="sans-serif" font-size="12" font-weight="bold" fill="#2D3748" text-anchor="middle">km</text>
                     
@@ -1525,7 +1514,7 @@
                     <circle cx="255" cy="110" r="22" fill="${highlightMm}" stroke="#4A5568" stroke-width="3"/>
                     <text x="255" y="115" font-family="sans-serif" font-size="12" font-weight="bold" fill="#2D3748" text-anchor="middle">mm</text>
                     
-                    <!-- 乘法箭頭 (大變小，順向) -->
+                    <!-- 乘法箭頭 (大變小) -->
                     <path d="M 55 85 Q 80 60 105 85" fill="none" stroke="#2B6CB0" stroke-width="2" marker-end="url(#arrow-len)"/>
                     <text x="80" y="65" font-family="sans-serif" font-size="9" font-weight="bold" fill="#2B6CB0" text-anchor="middle">×1000</text>
                     
@@ -1535,7 +1524,7 @@
                     <path d="M 195 85 Q 220 60 245 85" fill="none" stroke="#2B6CB0" stroke-width="2" marker-end="url(#arrow-len)"/>
                     <text x="220" y="65" font-family="sans-serif" font-size="9" font-weight="bold" fill="#2B6CB0" text-anchor="middle">×10</text>
                     
-                    <!-- 除法箭頭 (小變大，逆向) -->
+                    <!-- 除法箭頭 (小變大) -->
                     <path d="M 245 135 Q 220 160 195 135" fill="none" stroke="#C53030" stroke-width="2" marker-end="url(#arrow-len-rev)"/>
                     <text x="220" y="158" font-family="sans-serif" font-size="9" font-weight="bold" fill="#C53030" text-anchor="middle">÷10</text>
                     
@@ -1545,7 +1534,7 @@
                     <path d="M 105 135 Q 80 160 55 135" fill="none" stroke="#C53030" stroke-width="2" marker-end="url(#arrow-len-rev)"/>
                     <text x="80" y="158" font-family="sans-serif" font-size="9" font-weight="bold" fill="#C53030" text-anchor="middle">÷1000</text>
                     
-                    <text x="150" y="25" font-family="'Zen Maru Gothic', sans-serif" font-size="11" font-weight="bold" fill="#2D3748" text-anchor="middle">長度級聯關係示意圖</text>
+                    <text x="150" y="25" font-family="'Zen Maru Gothic', sans-serif" font-size="11" font-weight="bold" fill="#2D3748" text-anchor="middle">大變小用乘（數字變多），小變大用除（數字變少）</text>
                     
                     <defs>
                         <marker id="arrow-len" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -1558,9 +1547,8 @@
                 </svg>
                 `;
             } else if (lvlType === 'TIME') {
-                // LV.4 鐘面扇形對齊比例圖
+                // LV.4 鐘面比例圖 (1.5hr = 90min)
                 let hrVal = (fromU === 'hr') ? fromV : toV;
-                // 用模數取 1.0 的扇形比例，若是大於 1 則顯示飽滿度
                 const displayRatio = hrVal % 1.0 === 0 ? 1.0 : (hrVal % 1.0);
                 const angle = displayRatio * 2 * Math.PI;
                 const r = 55;
@@ -1582,31 +1570,25 @@
 
                 svg = `
                 <svg width="300" height="200" viewBox="0 0 300 200" style="display:block; margin:auto;">
-                    <!-- 鐘面外框 -->
                     <circle cx="${cx}" cy="${cy}" r="65" fill="#FFFFFF" stroke="#4A5568" stroke-width="5" />
                     <circle cx="${cx}" cy="${cy}" r="58" fill="#F7FAFC" />
                     
-                    <!-- 時間比例扇形區 -->
                     ${pathD}
                     
-                    <!-- 時鐘刻度 -->
                     <line x1="${cx}" y1="${cy - 65}" x2="${cx}" y2="${cy - 57}" stroke="#2D3748" stroke-width="3"/>
                     <line x1="${cx + 65}" y1="${cy}" x2="${cx + 57}" y2="${cy}" stroke="#2D3748" stroke-width="3"/>
                     <line x1="${cx}" y1="${cy + 65}" x2="${cx}" y2="${cy + 57}" stroke="#2D3748" stroke-width="3"/>
                     <line x1="${cx - 65}" y1="${cy}" x2="${cx - 57}" y2="${cy}" stroke="#2D3748" stroke-width="3"/>
                     
-                    <!-- 分針 (紅，指向當前分鐘比值) -->
                     <line x1="${cx}" y1="${cy}" x2="${endX}" y2="${endY}" stroke="#E53E3E" stroke-width="3" stroke-linecap="round"/>
-                    <!-- 時針 (短，靜止指向 12) -->
                     <line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy - 35}" stroke="#2D3748" stroke-width="4" stroke-linecap="round"/>
                     
-                    <!-- 圓心軸點 -->
                     <circle cx="${cx}" cy="${cy}" r="6" fill="#2D3748" />
                     
-                    <text x="50" y="100" font-family="'Zen Maru Gothic', sans-serif" font-size="12" font-weight="bold" fill="#B83280" text-anchor="middle">${fromV} ${fromU}</text>
-                    <text x="250" y="100" font-family="'Zen Maru Gothic', sans-serif" font-size="12" font-weight="bold" fill="#2B6CB0" text-anchor="middle">${toV} ${toU}</text>
+                    <text x="45" y="100" font-family="'Zen Maru Gothic', sans-serif" font-size="11" font-weight="bold" fill="#B83280" text-anchor="middle">${fromV} ${fromU}</text>
+                    <text x="255" y="100" font-family="'Zen Maru Gothic', sans-serif" font-size="11" font-weight="bold" fill="#2B6CB0" text-anchor="middle">${toV} ${toU}</text>
                     
-                    <text x="150" y="24" font-family="'Zen Maru Gothic', sans-serif" font-size="11" font-weight="bold" fill="#718096" text-anchor="middle">時間轉盤：1 小時 = 60 分鐘</text>
+                    <text x="150" y="24" font-family="'Zen Maru Gothic', sans-serif" font-size="11" font-weight="bold" fill="#718096" text-anchor="middle">時間：1 小時 (hr) = 60 分鐘 (min)</text>
                 </svg>
                 `;
             }
@@ -1621,26 +1603,35 @@
             document.getElementById('game-viewport').classList.add('state-b');
             const cardContainer = document.getElementById('card-container');
             
-            // 先繪製 SVG 後進行翻轉，確保渲染定位準確不穿孔
             const q = questions[questionIndex];
             
-            // 寫入觀念標題與 SVG 圖形
+            // 寫入觀念標題、副標題與 SVG 圖形
             let visualTitle = "單位換算觀念";
-            if (q.levelType === 'MASS') visualTitle = "質量換算觀念 ⚖️";
-            else if (q.levelType === 'VOLUME') visualTitle = "容積換算觀念 🧪";
-            else if (q.levelType === 'LENGTH') visualTitle = "長度換算觀念 📏";
-            else if (q.levelType === 'TIME') visualTitle = "時間換算觀念 ⏱️";
+            let visualSub = "大單位變小單位用乘法，小單位變大單位用除法。";
+            if (q.levelType === 'MASS') {
+                visualTitle = "質量換算觀念 ⚖️";
+                visualSub = "大單位 kg 變小單位 g 數值相乘；小變大則相除。";
+            } else if (q.levelType === 'VOLUME') {
+                visualTitle = "容積換算觀念 🧪";
+                visualSub = "大單位 L 變小單位 mL 數值相乘；小變大則相除。";
+            } else if (q.levelType === 'LENGTH') {
+                visualTitle = "長度換算觀念 📏";
+                visualSub = "依照階梯：大變小向右跨步用乘法，小變大向左跨步用除法。";
+            } else if (q.levelType === 'TIME') {
+                visualTitle = "時間換算觀念 ⏱️";
+                visualSub = "大單位 hr 變小單位 min 數值相乘；小變大則相除。";
+            }
             
             document.getElementById('hint-concept-title').textContent = visualTitle;
+            document.getElementById('hint-concept-subtitle').textContent = visualSub;
             drawVisualConceptSVG(q);
 
-            // 寫入折疊公式的原始字串
+            // 寫入公式算式
             document.getElementById('formula-content').innerHTML = q.formula;
 
-            // 觸發 Webkit 安全性翻轉
+            // 觸發安全翻轉
             cardContainer.classList.add('flipped');
             
-            // 翻轉完成後，將正面 display 改為 none，並使背面 transform 歸零，根除 iOS 的 3D Hit-test 位置偏差 Bug
             setTimeout(() => {
                 if (cardContainer.classList.contains('flipped')) {
                     document.getElementById('card-front').style.display = 'none';
@@ -1679,12 +1670,10 @@
             stopQuestionTimer();
             playSynthSound('win');
 
-            // 結算累計分數
             totalScore = score;
             document.getElementById('final-score').textContent = totalScore;
             document.getElementById('final-combo-bonus').textContent = totalComboBonus;
 
-            // 完美成就判斷
             const badgeContainer = document.getElementById('perfect-badge-container');
             if (isPerfect) {
                 badgeContainer.style.display = 'flex';
@@ -1692,14 +1681,11 @@
                 badgeContainer.style.display = 'none';
             }
 
-            // 更新並儲存最佳分數
             saveHighScore(currentLevel, totalScore);
             loadHighScoresToMenu();
 
-            // 顯示結算覆蓋面板
             document.getElementById('settlement-overlay').style.display = 'flex';
 
-            // 微前端 telemetry 遙測封包廣播
             if (window.parent !== window) {
                 window.parent.postMessage({
                     type: 'GAME_OVER',
@@ -1728,10 +1714,8 @@
             playSynthSound('click');
             stopQuestionTimer();
             if (window.parent !== window) {
-                // Iframe 下回報微前端系統，主動退出單元
                 window.parent.postMessage({ type: 'EXIT_CHALLENGE', challengeId: 2 }, '*');
             } else {
-                // Standalone 狀態下返回選單
                 showMainMenu();
             }
         }
@@ -1749,7 +1733,6 @@
 
             container.appendChild(toast);
             
-            // 強制回流以啟動 CSS 動態特效
             toast.offsetHeight;
             toast.classList.add('show');
 
