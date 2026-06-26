@@ -7,7 +7,7 @@
     <!-- 引入親和力圓體字型 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Zen+Maru Gothic:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
         /* ==========================================================================
@@ -319,7 +319,7 @@
             border-radius: 16px;
             font-size: 18px;
             font-weight: 700;
-            min-width: 110px;
+            min-width: 140px;
             text-align: center;
         }
 
@@ -722,7 +722,7 @@
                 <div id="timer-bar"></div>
             </div>
             
-            <div id="score-badge">得分: 0</div>
+            <div id="score-badge">得分: 0 / 100</div>
             <div id="combo-badge">連擊: 0</div>
         </div>
 
@@ -843,7 +843,7 @@
             <canvas id="fireworks-canvas" style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index: 1999;"></canvas>
             <div class="settlement-title">🏆 挑戰完成！🏎️</div>
             <div class="score-display-row">總得分：<span id="final-score" style="color: #FFE259;">0</span> 分</div>
-            <div class="combo-bonus-row">連擊總獎勵：+<span id="final-combo-bonus">0</span> 分</div>
+            <div class="combo-bonus-row">最高連續配對：<span id="final-max-combo" style="color: #E6FFFA;">0</span> 次 🏎️</div>
             
             <div id="perfect-badge-container">
                 <div class="gold-badge">🎖️</div>
@@ -982,11 +982,11 @@
             { fromVal: 18, fromUnit: 'min', toVal: 0.3, toUnit: 'hr', levelType: 'TIME' },
             { fromVal: 24, fromUnit: 'min', toVal: 0.4, toUnit: 'hr', levelType: 'TIME' },
             { fromVal: 48, fromUnit: 'min', toVal: 0.8, toUnit: 'hr', levelType: 'TIME' },
-            { fromVal: 150, fontUnit: 'min', toVal: 2.5, toUnit: 'hr', levelType: 'TIME' }
+            { fromVal: 150, fromUnit: 'min', toVal: 2.5, toUnit: 'hr', levelType: 'TIME' }
         ];
 
         /* ==========================================================================
-           4. Web Audio API 音效引擎 (馬卡龍溫和音頻重製，徹底消除刺耳電子音)
+           4. Web Audio API 音效引擎 (馬卡龍溫和音頻，完全消除刺耳電子音)
            ========================================================================== */
         let audioCtx = null;
         function initAudio() {
@@ -1086,14 +1086,13 @@
         }
 
         /* ==========================================================================
-           5. 遊戲核心變數與生命週期控制
+           5. 遊戲核心變數與生命週期控制 (計分標準重製為 10 題滿分 100)
            ========================================================================== */
         let currentLevel = 1;
         let questionIndex = 0;
-        let score = 0;
-        let combo = 0;
-        let totalScore = 0;
-        let totalComboBonus = 0;
+        let score = 0;             // 獨立關卡得分 (上限 100)
+        let combo = 0;             // 畫面上當前連擊次數
+        let peakCombo = 0;         // 本局最高連擊數 (用作 telemetry 與 cosmetic 回報)
         let attempts = 3;
         let isPerfect = true;
         let questions = [];
@@ -1101,6 +1100,13 @@
         let startTime = null;
         const QUESTION_TIMEOUT = 12000; // 每題 12 秒
         let timeRemaining = QUESTION_TIMEOUT;
+
+        // 獨立關卡答題狀態記錄 (供主網站自由重組計分)
+        let firstTryCount = 0;
+        let secondTryCount = 0;
+        let thirdTryCount = 0;
+        let failedCount = 0;
+        let gameStartTime = null;
 
         // 洗牌演算法
         function shuffleArray(array) {
@@ -1138,7 +1144,7 @@
         });
 
         /* ==========================================================================
-           6. 題目與解說建構引擎 (釐清「大變小用乘，小變大用除」邏輯，完全排除 undefined)
+           6. 題目與解說建構引擎
            ========================================================================== */
         function getFormulaExplanation(q) {
             const fVal = q.fromVal;
@@ -1150,13 +1156,13 @@
                 if (fUnit === 'kg' && tUnit === 'g') {
                     return `因為 1 kg = 1000 g <strong>(大單位變小單位用乘法：數字放大)</strong><br>算式：<strong>${fVal} × 1000 = ${tVal} g</strong>`;
                 } else {
-                    return `因為 1 kg = 1000 g <strong>(小單位變大單位用除法：數字縮小)</strong><br>算式：<strong>${fVal} ÷ 1000 = ${tVal} kg</strong>`;
+                    return `朝向大單位： 1 kg = 1000 g <strong>(小單位變大單位用除法：數字縮小)</strong><br>算式：<strong>${fVal} ÷ 1000 = ${tVal} kg</strong>`;
                 }
             } else if (q.levelType === 'VOLUME') {
                 if (fUnit === 'L' && tUnit === 'mL') {
                     return `因為 1 L = 1000 mL <strong>(大單位變小單位用乘法：數字放大)</strong><br>算式：<strong>${fVal} × 1000 = ${tVal} mL</strong>`;
                 } else {
-                    return `因為 1 L = 1000 mL <strong>(小單位變大單位用除法：數字縮小)</strong><br>算式：<strong>${fVal} ÷ 1000 = ${tVal} L</strong>`;
+                    return `朝向大單位： 1 L = 1000 mL <strong>(小單位變大單位用除法：數字縮小)</strong><br>算式：<strong>${fVal} ÷ 1000 = ${tVal} L</strong>`;
                 }
             } else if (q.levelType === 'LENGTH') {
                 if (fUnit === 'km' && tUnit === 'm') {
@@ -1168,19 +1174,19 @@
                 } else if (fUnit === 'm' && tUnit === 'mm') {
                     return `因為 1 m = 1000 mm <strong>(大單位變小單位用乘法：數字放大)</strong><br>算式：<strong>${fVal} × 1000 = ${tVal} mm</strong>`;
                 } else if (fUnit === 'mm' && tUnit === 'cm') {
-                    return `因為 1 cm = 10 mm <strong>(小單位變大單位用除法：數字縮小)</strong><br>算式：<strong>${fVal} ÷ 10 = ${tVal} cm</strong>`;
+                    return `朝向大單位： 1 cm = 10 mm <strong>(小單位變大單位用除法：數字縮小)</strong><br>算式：<strong>${fVal} ÷ 10 = ${tVal} cm</strong>`;
                 } else if (fUnit === 'cm' && tUnit === 'm') {
-                    return `因為 1 m = 100 cm <strong>(小單位變大單位用除法：數字縮小)</strong><br>算式：<strong>${fVal} ÷ 100 = ${tVal} m</strong>`;
+                    return `朝向大單位： 1 m = 100 cm <strong>(小單位變大單位用除法：數字縮小)</strong><br>算式：<strong>${fVal} ÷ 100 = ${tVal} m</strong>`;
                 } else if (fUnit === 'm' && tUnit === 'km') {
-                    return `因為 1 km = 1000 m <strong>(小單位變大單位用除法：數字縮小)</strong><br>算式：<strong>${fVal} ÷ 1000 = ${tVal} km</strong>`;
+                    return `朝向大單位： 1 km = 1000 m <strong>(小單位變大單位用除法：數字縮小)</strong><br>算式：<strong>${fVal} ÷ 1000 = ${tVal} km</strong>`;
                 } else if (fUnit === 'mm' && tUnit === 'm') {
-                    return `因為 1 m = 1000 mm <strong>(小單位變大單位用除法：數字縮小)</strong><br>算式：<strong>${fVal} ÷ 1000 = ${tVal} m</strong>`;
+                    return `朝向大單位： 1 m = 1000 mm <strong>(小單位變大單位用除法：數字縮小)</strong><br>算式：<strong>${fVal} ÷ 1000 = ${tVal} m</strong>`;
                 }
             } else if (q.levelType === 'TIME') {
                 if (fUnit === 'hr' && tUnit === 'min') {
                     return `因為 1 小時 (hr) = 60 分鐘 (min) <strong>(大單位變小單位用乘法：數字放大)</strong><br>算式：<strong>${fVal} × 60 = ${tVal} min</strong>`;
                 } else {
-                    return `因為 1 小時 (hr) = 60 分鐘 (min) <strong>(小單位變大單位用除法：數字縮小)</strong><br>算式：<strong>${fVal} ÷ 60 = ${tVal} hr</strong>`;
+                    return `朝向大單位： 1 小時 (hr) = 60 分鐘 (min) <strong>(小單位變大單位用除法：數字縮小)</strong><br>算式：<strong>${fVal} ÷ 60 = ${tVal} hr</strong>`;
                 }
             }
             return `換算關係：${fVal} ${fUnit} = ${tVal} ${tUnit}`;
@@ -1198,11 +1204,11 @@
             const fmt = n => parseFloat(Number(n).toFixed(4));
             
             if (unitF === 'hr' && unitT === 'min') {
-                set.add(fmt(from * 100)); // 經典錯誤：將小數直接寫成分鐘 (0.25hr -> 25min)
+                set.add(fmt(from * 100)); 
                 set.add(fmt(correct * 10)); 
                 set.add(fmt(correct / 10));
             } else if (unitF === 'min' && unitT === 'hr') {
-                set.add(fmt(from / 100)); // 15min -> 0.15hr
+                set.add(fmt(from / 100)); 
                 set.add(fmt(correct * 10));
                 set.add(fmt(correct / 10));
             } else {
@@ -1236,8 +1242,15 @@
             questionIndex = 0;
             score = 0;
             combo = 0;
-            totalComboBonus = 0;
+            peakCombo = 0;
             isPerfect = true;
+            
+            // 歸零詳細指標記錄
+            firstTryCount = 0;
+            secondTryCount = 0;
+            thirdTryCount = 0;
+            failedCount = 0;
+            gameStartTime = performance.now(); // 記錄本關啟動毫秒
 
             // 挑選基礎題庫
             let rawPool = [];
@@ -1301,7 +1314,7 @@
             }
 
             document.getElementById('question-progress').textContent = `${index + 1} / 10`;
-            document.getElementById('score-badge').textContent = `得分: ${score}`;
+            document.getElementById('score-badge').textContent = `得分: ${score} / 100`;
             document.getElementById('combo-badge').textContent = `連擊: ${combo}`;
 
             updateRacingCarPosition();
@@ -1376,41 +1389,45 @@
             stopQuestionTimer();
             combo = 0;
             isPerfect = false;
+            failedCount++; // 統計逾時失敗
             showToast("時間到！來看看解題觀念吧 ⏱️", "error");
             flipToStateB();
         }
 
         /* ==========================================================================
-           9. 答題點擊判定機制 (三段式階梯計分)
+           9. 答題點擊判定機制 (獨立小挑戰 10 題滿分 100 計分系統)
            ========================================================================== */
         function selectOption(index) {
             stopQuestionTimer();
             const q = questions[questionIndex];
             
             if (index === q.correctIndex) {
-                let ptsEarned = 10;
-                if (attempts === 3) ptsEarned = 20;
-                else if (attempts === 2) ptsEarned = 15;
+                let ptsEarned = 0;
                 
-                let comboBonus = 0;
                 if (attempts === 3) {
+                    ptsEarned = 10;       // 第一嘗試：10 分
+                    firstTryCount++;
                     combo++;
-                    if (combo >= 2) {
-                        comboBonus = combo * 2;
+                    if (combo > peakCombo) {
+                        peakCombo = combo; // 記錄最高連擊
                     }
-                } else {
-                    combo = 0; 
+                } else if (attempts === 2) {
+                    ptsEarned = 7;        // 第二嘗試：7 分
+                    secondTryCount++;
+                    combo = 0;            // 重置連擊
+                } else if (attempts === 1) {
+                    ptsEarned = 4;        // 第三嘗試：4 分
+                    thirdTryCount++;
+                    combo = 0;            // 重置連擊
                 }
 
-                score += (ptsEarned + comboBonus);
-                totalComboBonus += comboBonus;
-
+                score += ptsEarned; // 累加至滿分 100 的 Standalone 分數
                 playSynthSound('correct', combo);
                 
-                if (comboBonus > 0) {
-                    showToast(`答對！+${ptsEarned} 分 (連擊 BONUS +${comboBonus} 分！) 🎉`, "success");
+                if (combo >= 2) {
+                    showToast(`配對成功！+${ptsEarned} 分 (連續配對 ${combo} 次！) 🎉`, "success");
                 } else {
-                    showToast(`答對！+${ptsEarned} 分！🎉`, "success");
+                    showToast(`配對成功！+${ptsEarned} 分！🎉`, "success");
                 }
 
                 flipToStateB();
@@ -1429,6 +1446,7 @@
                     }
                     startQuestionTimer();
                 } else {
+                    failedCount++; // 答錯三次徹底失敗
                     showToast("機會用完了，來看看解法吧！", "error");
                     flipToStateB();
                 }
@@ -1436,7 +1454,7 @@
         }
 
         /* ==========================================================================
-           10. SVG 動態生成引擎 (高精度刻度對齊，徹底解決「圖跟說明不一樣」)
+           10. SVG 動態生成引擎 (高精度刻度對齊)
            ========================================================================== */
         function drawVisualConceptSVG(q) {
             const container = document.getElementById('hint-svg-placeholder');
@@ -1478,50 +1496,38 @@
                 </svg>
                 `;
             } else if (lvlType === 'VOLUME') {
-                // 水面與刻度對稱重製演算法
                 let targetML = (toU === 'mL') ? toV : fromV;
                 
-                // 動態判斷量筒容量區間，保證最高刻度高於或等於目標
                 let maxML = 1000;
                 if (targetML > 1000) maxML = 3000;
                 
-                // 水面總高度為 110px 區間 (量筒底部為 y=160, 頂部為 y=50)
                 let fillRatio = targetML / maxML;
                 let fillH = fillRatio * 110;
                 let waterTopY = 160 - fillH;
 
-                // 生成純數學等比刻度線與對齊標籤
                 let ticksHTML = '';
                 if (maxML === 1000) {
                     ticksHTML = `
-                        <!-- 1000 mL -->
                         <line x1="110" y1="50" x2="125" y2="50" stroke="#4A5568" stroke-width="2"/>
                         <text x="100" y="54" font-family="sans-serif" font-size="10" fill="#718096" text-anchor="end">1000 mL</text>
                         
-                        <!-- 750 mL -->
                         <line x1="110" y1="77.5" x2="120" y2="77.5" stroke="#4A5568" stroke-width="2"/>
                         <text x="100" y="81.5" font-family="sans-serif" font-size="10" fill="#718096" text-anchor="end">750 mL</text>
 
-                        <!-- 500 mL -->
                         <line x1="110" y1="105" x2="125" y2="105" stroke="#4A5568" stroke-width="2"/>
                         <text x="100" y="109" font-family="sans-serif" font-size="10" fill="#718096" text-anchor="end">500 mL</text>
 
-                        <!-- 250 mL -->
                         <line x1="110" y1="132.5" x2="120" y2="132.5" stroke="#4A5568" stroke-width="2"/>
                         <text x="100" y="136.5" font-family="sans-serif" font-size="10" fill="#718096" text-anchor="end">250 mL</text>
                     `;
                 } else {
-                    // 3000 mL 區間刻度
                     ticksHTML = `
-                        <!-- 3000 mL -->
                         <line x1="110" y1="50" x2="125" y2="50" stroke="#4A5568" stroke-width="2"/>
                         <text x="100" y="54" font-family="sans-serif" font-size="10" fill="#718096" text-anchor="end">3000 mL</text>
                         
-                        <!-- 2000 mL -->
                         <line x1="110" y1="86.7" x2="125" y2="86.7" stroke="#4A5568" stroke-width="2"/>
                         <text x="100" y="90.7" font-family="sans-serif" font-size="10" fill="#718096" text-anchor="end">2000 mL</text>
 
-                        <!-- 1000 mL -->
                         <line x1="110" y1="123.3" x2="125" y2="123.3" stroke="#4A5568" stroke-width="2"/>
                         <text x="100" y="127.3" font-family="sans-serif" font-size="10" fill="#718096" text-anchor="end">1000 mL</text>
                     `;
@@ -1529,22 +1535,17 @@
                 
                 svg = `
                 <svg width="300" height="200" viewBox="0 0 300 200" style="display:block; margin:auto;">
-                    <!-- 量筒外壁 -->
                     <rect x="110" y="40" width="80" height="130" rx="10" fill="#FFFDF9" stroke="#718096" stroke-width="4" />
                     <ellipse cx="150" cy="170" rx="55" ry="10" fill="#E2E8F0" stroke="#4A5568" stroke-width="4" />
                     
-                    <!-- 水位著色 (完全精準貼合對應刻度線，不多不少) -->
                     <rect x="114" y="${waterTopY}" width="72" height="${fillH}" rx="4" fill="rgba(144, 205, 244, 0.85)" />
                     
-                    <!-- 動態渲染對稱刻度 -->
                     ${ticksHTML}
                     
-                    <!-- 內部原始標籤 -->
                     <text x="150" y="${Math.min(waterTopY + fillH/2 + 4, 158)}" font-family="'Zen Maru Gothic', sans-serif" font-size="11" font-weight="bold" fill="#2B6CB0" text-anchor="middle">${fromV} ${fromU}</text>
                     
-                    <!-- 指引線段 -->
-                    <path d="M 205 ${waterTopY + 5} L 225 ${waterTopY + 5}" stroke="#4A5568" stroke-width="2" stroke-dasharray="2" marker-end="url(#arrow-vol)" />
-                    <text x="260" y="${waterTopY + 9}" font-family="'Zen Maru Gothic', sans-serif" font-size="12" font-weight="bold" fill="#2F855A" text-anchor="middle">${toV} ${toU}</text>
+                    <path d="M 205 ${waterTopY + 5} L 220 ${waterTopY + 5}" stroke="#4A5568" stroke-width="2" stroke-dasharray="2" marker-end="url(#arrow-vol)" />
+                    <text x="255" y="${waterTopY + 9}" font-family="'Zen Maru Gothic', sans-serif" font-size="12" font-weight="bold" fill="#2F855A" text-anchor="middle">${toV} ${toU}</text>
                     
                     <defs>
                         <marker id="arrow-vol" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -1663,7 +1664,6 @@
             
             const q = questions[questionIndex];
             
-            // 寫入觀念標題、副標題與 SVG 圖形
             let visualTitle = "單位換算觀念";
             let visualSub = "大單位變小單位用乘法，小單位變大單位用除法。";
             if (q.levelType === 'MASS') {
@@ -1684,10 +1684,8 @@
             document.getElementById('hint-concept-subtitle').textContent = visualSub;
             drawVisualConceptSVG(q);
 
-            // 寫入公式算式
             document.getElementById('formula-content').innerHTML = q.formula;
 
-            // 觸發安全翻轉
             cardContainer.classList.add('flipped');
             
             setTimeout(() => {
@@ -1713,7 +1711,7 @@
         }
 
         /* ==========================================================================
-           13. 進行至下一題 / 進入結算畫面 (內含 Canvas 慶祝煙火動畫)
+           13. 進行至下一題 / 進入結算畫面 (提供最彈性的 Iframe 遙測元數據廣播)
            ========================================================================== */
         function goToNextQuestion() {
             playSynthSound('click');
@@ -1728,9 +1726,9 @@
             stopQuestionTimer();
             playSynthSound('win');
 
-            totalScore = score;
+            totalScore = score; // 滿分 100 分制
             document.getElementById('final-score').textContent = totalScore;
-            document.getElementById('final-combo-bonus').textContent = totalComboBonus;
+            document.getElementById('final-max-combo').textContent = peakCombo;
 
             const badgeContainer = document.getElementById('perfect-badge-container');
             if (isPerfect) {
@@ -1744,17 +1742,31 @@
 
             document.getElementById('settlement-overlay').style.display = 'flex';
             
-            // 啟動炫彩煙火特效
             startFireworksEffect();
 
+            // 精確計算答題花費的總秒數
+            const timeSpentSeconds = Math.round((performance.now() - gameStartTime) / 1000);
+
+            // ==========================================================================
+            // 微前端 telemetry 遙測封包廣播 (完美拆分獨立計分與主網站計分！)
+            // ==========================================================================
             if (window.parent !== window) {
                 window.parent.postMessage({
                     type: 'GAME_OVER',
                     challengeId: 2,
                     currentLevel: currentLevel,
                     isPerfect: isPerfect,
-                    score: totalScore,
-                    comboBonus: totalComboBonus
+                    score: totalScore, // 獨立小挑戰的 100 分制分數 (0~100)
+                    
+                    // 【關鍵回傳】回傳最詳盡的 Raw Telemetry 指標，讓您的主網站自由加權計算
+                    metrics: {
+                        firstTryCorrect: firstTryCount,    // 第一次答對題數 (0~10)
+                        secondTryCorrect: secondTryCount,  // 第二次答對題數 (0~10)
+                        thirdTryCorrect: thirdTryCount,    // 第三次答對題數 (0~10)
+                        failedCount: failedCount,          // 徹底答錯或超時題數 (0~10)
+                        maxCombo: peakCombo,               // 本關卡的最大連續答對題數
+                        timeSpentSeconds: timeSpentSeconds // 學員完成本關卡消耗的總時間（秒）
+                    }
                 }, '*');
             }
         }
@@ -1795,7 +1807,6 @@
             if (!canvas) return;
             const ctx = canvas.getContext('2d');
             
-            // 對齊視窗邏輯解析度 (1280x720)
             canvas.width = 1280;
             canvas.height = 720;
             
@@ -1843,7 +1854,6 @@
                 }
             }
             
-            // 首波高空齊放
             spawnExplosion(340, 220);
             spawnExplosion(640, 160);
             spawnExplosion(940, 220);
@@ -1928,9 +1938,13 @@
         }
 
         function devInstantWin() {
-            score = 200;
-            totalComboBonus = 36;
+            score = 100;
+            peakCombo = 10;
             isPerfect = true;
+            firstTryCount = 10;
+            secondTryCount = 0;
+            thirdTryCount = 0;
+            failedCount = 0;
             questionIndex = 9;
             showSettlement();
             document.getElementById('dev-panel').style.display = 'none';
